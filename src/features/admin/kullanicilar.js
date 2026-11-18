@@ -1,7 +1,7 @@
-import { collection, deleteDoc, doc, getDocs, limit, orderBy, query, setDoc, updateDoc, where } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, limit, orderBy, query, setDoc, updateDoc, where } from "../../veri/firestore.js";
 import { state } from "../../core/state.js";
 import { $ } from "../../lib/dom.js";
-import { db } from "../../firebase/init.js";
+import { db } from "../../veri/init.js";
 import { logYaz, yoneticiMi } from "../../core/session.js";
 import { htmlGuvenli } from "../../lib/text.js";
 import { ikon } from "../../lib/ikon.js";
@@ -23,7 +23,7 @@ function kullaniciModalHazirla() {
         <button type="button" id="kmEkle" class="btn btn-primary">${ikon("plus", 16)} Ekle</button>
       </div>
       <div id="kmListe" class="ym-liste"></div>
-      <p class="ym-not">Yeni kişinin giriş hesabı (e-posta/şifre) Firebase Authentication'dan ayrıca açılmalıdır. Burada yalnızca uygulamadaki yetkisi belirlenir. Kendi kaydınızı buradan değiştiremezsiniz.</p>
+      <p class="ym-not">Yeni kişinin giriş hesabı (e-posta/şifre) Supabase panelinden (Authentication → Users → Add user) ayrıca açılmalıdır. Burada yalnızca uygulamadaki yetkisi belirlenir. Kendi kaydınızı buradan değiştiremezsiniz.</p>
     </div>
     <div id="kmPanelG" style="display:none">
       <input id="kmGFiltre" type="search" placeholder="Süz: kişi, işlem, firma, form kodu…" aria-label="İşlem geçmişini süz" class="ym-girdi ym-tam">
@@ -109,7 +109,7 @@ async function gecmisYukle(sifirla) {
     if (snap.size < 100) gecmisBitti = true;
     if (gecmisTum.length) gecmisSon = gecmisTum[gecmisTum.length - 1].zaman;
     gecmisCiz();
-  } catch (e) { console.error(e); kutu.textContent = "Geçmiş alınamadı: " + e.message + " (Firestore kurallarında islemGecmisi izni var mı?)"; }
+  } catch (e) { console.error(e); kutu.textContent = "Geçmiş alınamadı: " + e.message + ""; }
 }
 
 function gecmisCiz() {

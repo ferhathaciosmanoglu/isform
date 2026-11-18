@@ -1,4 +1,4 @@
-/* Duman testi: gerçek tarayıcıda uygulamayı (Firebase SAHTE modüllerle) açar, sekmeleri gezer ve
+/* Duman testi: gerçek tarayıcıda uygulamayı (Supabase/veri katmanı SAHTE modüllerle) açar, sekmeleri gezer ve
    konsolda hata / yakalanmamış istisna olmadığını doğrular. Ağ ve gerçek veri gerekmez.
    Kullanım:  npm run test:smoke      (ilk kez:  npx playwright install chromium)
    Ortam:     CHROMIUM_PATH=/yol/chrome  (isteğe bağlı) */
@@ -12,17 +12,14 @@ import assert from "node:assert/strict";
 const kok = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const sahte = path.join(kok, "tests/smoke/stubs");
 const mime = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".png": "image/png", ".webmanifest": "application/manifest+json" };
-const harita = { imports: { "firebase/app": "/__stubs/firebase-app.js", "firebase/app-check": "/__stubs/firebase-app-check.js", "firebase/firestore": "/__stubs/firebase-firestore.js", "firebase/auth": "/__stubs/firebase-auth.js" } };
+/* Veri katmanı dosyaları sahte karşılıklarıyla değiştirilir (src/veri/*.js → tests/smoke/stubs/veri-*.js) */
+const degisim = { "/src/veri/firestore.js": "veri-firestore.js", "/src/veri/auth.js": "veri-auth.js", "/src/veri/client.js": "veri-client.js" };
 
 const sunucu = http.createServer((req, res) => {
   const p = decodeURIComponent(req.url.split("?")[0]).replace(/\/$/, "/index.html");
-  let f = p.startsWith("/__stubs/") ? path.join(sahte, p.slice(9)) : path.join(kok, p);
+  let f = degisim[p] ? path.join(sahte, degisim[p]) : path.join(kok, p);
   if (!fs.existsSync(f)) f = path.join(kok, "public", p);
   if (!f.startsWith(kok) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
-  if (path.basename(f) === "index.html") {
-    const html = fs.readFileSync(f, "utf8").replace("</head>", `<script type="importmap">${JSON.stringify(harita)}</script></head>`);
-    res.writeHead(200, { "Content-Type": "text/html" }); return res.end(html);
-  }
   res.writeHead(200, { "Content-Type": mime[path.extname(f)] || "application/octet-stream" }); fs.createReadStream(f).pipe(res);
 });
 await new Promise(r => sunucu.listen(0, r));

@@ -41,8 +41,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 1400,   // heic2any (~1,3 MB) yalnızca iPhone HEIC fotoğrafı seçilince yüklenir
     rollupOptions: {
       output: {
-        // Firebase ayrı dosyada: uygulama kodu değişince kullanıcılar yalnızca küçük dosyayı yeniden indirir
-        manualChunks: id => (id.includes("node_modules/firebase") || id.includes("node_modules/@firebase") ? "firebase" : undefined)
+        // Supabase istemcisi ayrı dosyada: uygulama kodu değişince kullanıcılar yalnızca küçük dosyayı yeniden indirir
+        manualChunks: id => (id.includes("node_modules/@supabase") ? "supabase" : undefined)
       }
     }
   },

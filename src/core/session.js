@@ -1,6 +1,6 @@
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection } from "../veri/firestore.js";
 import { state } from "./state.js";
-import { db } from "../firebase/init.js";
+import { db } from "../veri/init.js";
 
 export const yoneticiMi = () => state.aktifRol === "yonetici";
 

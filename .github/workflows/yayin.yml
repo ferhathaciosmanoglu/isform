@@ -1,5 +1,10 @@
 name: Yayinla
 
+# main'e her gönderimde: lint + test + derleme, sonra Cloudflare Pages'e yayın.
+# Gerekli depo sırları (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID  (Pages ve Workers düzenleme yetkili jeton)
+# Depo değişkenleri (Variables): VITE_AI_PROXY_URL (AI Worker adresi; boşsa AI kapalıdır), CF_PAGES_PROJE (varsayılan: enorpa-isform)
+# Sırlar tanımlı değilse yayın adımları atlanır (derleme ve testler yine çalışır).
 on:
   push:
     branches: [main]
@@ -7,19 +12,17 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: yayin
   cancel-in-progress: true
 
 jobs:
   yayin:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.dagit.outputs.page_url }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,11 +34,7 @@ jobs:
       - run: npm test
       - run: npm run build
         env:
-          # Varsayılan: boş (AI, eski modda çalışır: anahtar Firestore'dan okunur). Bir AI proxy kurduysanız (Cloud Function
-          # veya Cloudflare Worker) adresini depo Variables altına VITE_AI_PROXY_URL adıyla ekleyin; site onu kullanır.
           VITE_AI_PROXY_URL: ${{ vars.VITE_AI_PROXY_URL }}
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-      - id: dagit
-        uses: actions/deploy-pages@v4
+      - name: Cloudflare Pages'e yayınla
+        if: env.CLOUDFLARE_API_TOKEN != ''
+        run: npx --yes wrangler@3 pages deploy dist --project-name "${{ vars.CF_PAGES_PROJE || 'enorpa-isform' }}" --branch main

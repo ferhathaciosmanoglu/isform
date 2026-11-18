@@ -1,6 +1,6 @@
 import "./lib/betik-yukle.js";
 import "./core/state.js";
-import "./firebase/init.js";
+import "./veri/init.js";
 import "./lib/dom.js";
 import "./lib/text.js";
 import "./lib/firma-kodu.js";
@@ -26,7 +26,6 @@ import "./features/firms/benzer-firma.js";
 import "./core/auth.js";
 import "./features/admin/kullanicilar.js";
 import "./app/pwa.js";
-import "./features/admin/optimize.js";
 import "./features/forms/foto-modal.js";
 import "./features/forms/foto-zoom.js";
 import "./features/forms/duzenle-sil.js";

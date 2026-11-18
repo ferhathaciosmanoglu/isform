@@ -1,11 +1,11 @@
-import { deleteField, doc, updateDoc, writeBatch } from "firebase/firestore";
+import { deleteField, doc, updateDoc, writeBatch } from "../../veri/firestore.js";
 import { state } from "../../core/state.js";
 import { $ } from "../../lib/dom.js";
 import { metniNormalizeEt } from "../../lib/text.js";
 import { ayEkle, inputtanIsoYap, tarihiInputaCevir } from "../../lib/dates.js";
 import { formNoAyir } from "../firms/firma-kodu-servis.js";
 import { vektorHazirla } from "../ai/embeddings.js";
-import { db } from "../../firebase/init.js";
+import { db } from "../../veri/init.js";
 import { raporKayitSil, raporKayitYenile } from "../reports/rapor-veri.js";
 import { logYaz, yoneticiMi } from "../../core/session.js";
 import { sessizAra } from "../search/sessiz-ara.js";

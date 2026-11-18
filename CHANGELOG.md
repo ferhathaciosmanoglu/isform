@@ -1,5 +1,12 @@
 # Değişiklik günlüğü
 
+## Yayınlanmamış — Supabase + Cloudflare'e geçiş
+- Arka uç Firebase'den Supabase'e taşındı (Auth, Postgres + RLS, Storage, Realtime); `src/veri/` Firestore benzeri API'yi koruyarak çağrı yerlerini değiştirmeden geçişi sağlar.
+- Form numarası artık `form_no_ayir()` Postgres fonksiyonuyla verilir; fotoğraflar Storage'da durur.
+- AI proxy Cloudflare Worker oldu (`cloudflare/ai-proxy`); yayın Cloudflare Pages'e alındı.
+- Çevrimdışı kayıt kaldırıldı (giriş için zaten internet gerekiyordu). "Eski kayıtları optimize et" aracı ve Firebase dosyaları (kurallar, fonksiyonlar, kurulum iş akışı) kaldırıldı.
+- Ziyaret geçmişi: firma kartında ENORPA'dan kim, ne zaman, kaç kez gitti (AI ile form okuma).
+
 ## 2.1.0
 **Düzeltmeler**
 - Kesme işareti ve ters bölü içeren metinler ekranda `\'` olarak bozuk görünüyordu (`htmlGuvenli`); düzenleme butonu da veriye fazladan `\` yazabiliyordu.

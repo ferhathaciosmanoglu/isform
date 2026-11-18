@@ -1,6 +1,6 @@
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "../../veri/firestore.js";
 import { $ } from "../../lib/dom.js";
-import { db } from "../../firebase/init.js";
+import { db } from "../../veri/init.js";
 import { disaridanKapat, temizSay } from "../../ui/modal.js";
 
 window.resmiAc = async function (docId, fotoId) {

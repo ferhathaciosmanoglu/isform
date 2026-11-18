@@ -1,5 +1,5 @@
 /* ENORPA İş Formları - service worker
-   Uygulama kabuğunu önbelleğe alır; Firestore, Auth ve Gemini istekleri her zaman doğrudan ağa gider.
+   Uygulama kabuğunu önbelleğe alır; Supabase, Auth ve Gemini istekleri her zaman doğrudan ağa gider.
    SURUM ve DERLEME değerleri `vite build` sırasında doldurulur (vite.config.js → swSurumu): her derleme yeni sürümdür,
    eski önbellek kendiliğinden silinir. Geliştirme sunucusunda yer tutucular olduğu gibi kalır. */
 const SURUM = "enorpa-__SURUM__";

@@ -16,25 +16,21 @@
     "test": "node --test tests/unit/*.test.js",
     "test:smoke": "node tests/smoke/smoke.mjs",
     "check": "npm run lint && npm run test && npm run build",
-    "test:rules": "firebase emulators:exec --only firestore --project enorpa-kural-testi 'node --test tests/rules/*.test.js'",
-    "demo": "vite --config demo/vite.config.js"
+    "demo": "vite --config demo/vite.config.js",
+    "test:entegrasyon": "node --test tests/entegrasyon/*.test.mjs"
   },
   "dependencies": {
-    "firebase": "12.14.0",
+    "@supabase/supabase-js": "^2.45.4",
     "heic2any": "0.0.4",
     "html2canvas": "1.4.1",
     "jspdf": "4.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
-    "@firebase/rules-unit-testing": "^5.0.2",
     "eslint": "^9.17.0",
     "globals": "^15.14.0",
     "playwright": "^1.49.0",
     "prettier": "^3.4.2",
     "vite": "^6.4.5"
-  },
-  "overrides": {
-    "@grpc/grpc-js": "^1.14.0"
   }
 }

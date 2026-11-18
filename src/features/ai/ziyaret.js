@@ -1,6 +1,6 @@
-import { doc, getDoc, updateDoc, writeBatch } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../../firebase/init.js";
+import { doc, getDoc, updateDoc, writeBatch } from "../../veri/firestore.js";
+import { onAuthStateChanged } from "../../veri/auth.js";
+import { auth, db } from "../../veri/init.js";
 import { state } from "../../core/state.js";
 import { logYaz, yoneticiMi } from "../../core/session.js";
 import { $ } from "../../lib/dom.js";

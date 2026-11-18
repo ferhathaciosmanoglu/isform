@@ -1,11 +1,11 @@
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection } from "../../veri/firestore.js";
 import { state } from "../../core/state.js";
 import { $, v } from "../../lib/dom.js";
 import { imzaVarMi, imzalariTemizle } from "./imza.js";
 import { htmlGuvenli, metniNormalizeEt } from "../../lib/text.js";
 import { getLocation } from "../../lib/konum.js";
 import { formNoAyir } from "../firms/firma-kodu-servis.js";
-import { db } from "../../firebase/init.js";
+import { db } from "../../veri/init.js";
 import { inputtanIsoYap, tarihiInputaCevir } from "../../lib/dates.js";
 import { vektorHazirla } from "../ai/embeddings.js";
 import { formdanZiyaret } from "../../lib/ziyaret.js";

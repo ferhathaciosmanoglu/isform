@@ -1,0 +1,12 @@
+name = "enorpa-ai-proxy"
+main = "index.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+SUPABASE_URL = "https://ohmbnassfbtsxwgozuhj.supabase.co"
+# Herkese açık (publishable) anahtar; gizli değildir
+SUPABASE_ANON_KEY = "sb_publishable_XKaVSBTOVU-3sHpL-3mpFQ_MtM903ie"
+# Virgülle ayrılmış site adresleri (CORS). Yayın adresinizi yazın, örn. "https://enorpa-isform.pages.dev"
+IZINLI_ORIGINLER = ""
+
+# Gizli anahtar komutla eklenir (dosyaya yazılmaz):  npx wrangler secret put GEMINI_API_KEY
