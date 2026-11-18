@@ -1,0 +1,63 @@
+name: Veri tasi (Firebase -> Supabase)
+
+# Elle çalıştırılır: Actions → "Veri tasi (Firebase -> Supabase)" → Run workflow.
+# Önce "kuru" seçili çalıştırın (hiçbir şey yazmaz, ne taşınacağını gösterir), sorun yoksa kapatıp gerçek taşımayı çalıştırın.
+# Gerekli depo sırları (Settings → Secrets and variables → Actions → Secrets):
+#   FIREBASE_SERVICE_ACCOUNT    : Firebase hizmet hesabı anahtarı (JSON dosyasının tamamı; yalnızca okuma için kullanılır)
+#   SUPABASE_SERVICE_ROLE_KEY   : Supabase → Project Settings → API Keys → service_role
+# Taşıma betiği scripts/firebase-tasi/ içindedir (README'sine bakın).
+on:
+  workflow_dispatch:
+    inputs:
+      kuru:
+        description: "Kuru çalıştırma (hiçbir şey yazmaz; önce bunu çalıştırın)"
+        type: boolean
+        default: true
+      gecmis:
+        description: "İşlem geçmişini de taşı (YALNIZCA BİR KEZ; tekrar çalıştırmada çoğalır)"
+        type: boolean
+        default: false
+      dal:
+        description: "Betiğin bulunduğu dal"
+        type: string
+        default: supabase-gecis
+
+permissions:
+  contents: read
+
+concurrency:
+  group: veri-tasi
+  cancel-in-progress: false
+
+jobs:
+  tasi:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: https://ohmbnassfbtsxwgozuhj.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.dal }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Sırlar tanımlı mı?
+        run: |
+          [ -n "$FIREBASE_SERVICE_ACCOUNT" ] || { echo "::error::FIREBASE_SERVICE_ACCOUNT sırrı tanımlı değil"; exit 1; }
+          [ -n "$SUPABASE_SERVICE_ROLE_KEY" ] || { echo "::error::SUPABASE_SERVICE_ROLE_KEY sırrı tanımlı değil"; exit 1; }
+      - name: Bağımlılıkları kur
+        working-directory: scripts/firebase-tasi
+        run: npm install --no-audit --no-fund
+      - name: Taşı
+        working-directory: scripts/firebase-tasi
+        run: |
+          umask 077
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/firebase.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase.json"
+          ARGS=""
+          [ "${{ inputs.kuru }}" = "true" ] && ARGS="$ARGS --kuru"
+          [ "${{ inputs.gecmis }}" = "true" ] && ARGS="$ARGS --gecmis"
+          node tasi.mjs $ARGS
+          rm -f "$RUNNER_TEMP/firebase.json"
