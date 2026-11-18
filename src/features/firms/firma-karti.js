@@ -38,7 +38,7 @@ window.firmaKartiAc = async function (aramaFirma, firmaAdi, sehir) {
   fkDoldur(fkKayitli); fkLinkler(); fkOkumaCiz();
   fkMod(!fkBilgiVar() && duzenleyebilirMi());   // bilgi yoksa doğrudan form açılır
   try {
-    const q = await getDocs(query(collection(db, "formlar"), where("aramaFirma", "==", aramaFirma), limit(40)));
+    const q = await getDocs(query(collection(db, "formlar"), where("aramaFirma", "==", aramaFirma), limit(300)));
     const L = []; q.forEach(d => L.push(d.data())); fkIstGuncelle(L); fkZamanCiz(L); window._fkSon = L;
   } catch (e) { console.error(e); }
 };

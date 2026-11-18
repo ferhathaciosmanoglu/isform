@@ -62,6 +62,8 @@ describe("formlar", () => {
   });
   test("yönetici düzenler ve siler; düzenleyen silemez", async () => {
     await assertSucceeds(updateDoc(doc(db(YON), "formlar", "mevcut"), { aciklama: "düzeltildi" }));
+    await assertSucceeds(updateDoc(doc(db(YON), "formlar", "mevcut"), { ziyaret: { personel: ["Ali Yılmaz"], tarih: "2026-10-01", kaynak: "ai", surum: 1 } }));
+    await assertFails(updateDoc(doc(db(DUZ), "formlar", "mevcut"), { ziyaret: { personel: ["Ali"], surum: 1 } }));
     await assertFails(deleteDoc(doc(db(DUZ), "formlar", "mevcut")));
     await assertSucceeds(deleteDoc(doc(db(YON), "formlar", "mevcut")));
   });
