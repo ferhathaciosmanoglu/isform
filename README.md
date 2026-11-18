@@ -25,7 +25,8 @@ SUPABASE_TEST_EPOSTA=... SUPABASE_TEST_SIFRE=... npm run test:entegrasyon
 
 ## Klasör yapısı
 
-Ayrıntı için [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Ayrıntı için [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); geliştirici rehberi (kurulum, veri katmanı, şema, RLS, AI,
+test, yayın, adım adım tarifler, sorun giderme, yol haritası): [docs/GELISTIRME.md](docs/GELISTIRME.md).
 
 ```
 public/        ikonlar, manifest, service worker

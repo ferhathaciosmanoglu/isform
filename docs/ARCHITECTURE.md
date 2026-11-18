@@ -4,7 +4,7 @@
 `src/main.js` modülleri bilinçli bir sırayla içe aktarır. Bazı modüller açılışta DOM'u kurar veya `window` üzerine
 işlev koyar; sonrakiler buna güvenir. Örnekler: `form-ui` form alanlarını üretir, `foto-modal` `window.resmiAc`'ı koyar,
 `ai/ek-ozellikler` onu sarmalar. **Sırayı değiştirmeyin**; yeni modülü ilgili grubun sonuna ekleyin.
-Sıra: state → firebase → lib → ui → core/session → ai çekirdeği → rapor verisi → özellik modülleri (eski sayfadaki sıra) → ai/ek-ozellikler.
+Sıra: state → veri → lib → ui → core/session → ai çekirdeği → rapor verisi → özellik modülleri (eski sayfadaki sıra) → ai/ek-ozellikler.
 
 ## Paylaşılan durum
 Başka modülden atama gereken değişkenler `core/state.js` içindeki `state` nesnesindedir
