@@ -1,5 +1,5 @@
-import { onAuthStateChanged, signOut } from "firebase/auth";
-import { auth } from "../firebase/init.js";
+import { onAuthStateChanged, signOut } from "../veri/auth.js";
+import { auth } from "../veri/init.js";
 
 let cikisZ;
 

@@ -1,12 +1,12 @@
-import { collection, getDocs, limit, orderBy, query, startAfter } from "firebase/firestore";
+import { collection, getDocs, limit, orderBy, query, startAfter } from "../../veri/firestore.js";
 import { $ } from "../../lib/dom.js";
 import { logYaz, yoneticiMi } from "../../core/session.js";
-import { db } from "../../firebase/init.js";
+import { db } from "../../veri/init.js";
 import { tarihiInputaCevir } from "../../lib/dates.js";
 
 /* Tam yedek (JSON). Fotoğraflar çok yer kapladığı için isteğe bağlıdır ve sayfa sayfa okunur.
    Bu, elle alınan bir yedektir; düzenli ve geri yüklenebilir yedek için README'deki "Yedekleme" bölümüne bakın
-   (Firestore zamanlanmış yedek / PITR). */
+   (Supabase günlük yedekleri). */
 const KOLEKSIYONLAR = ["formlar", "firmalar", "personel", "kullanicilar", "islemGecmisi", "sayaclar", "firmaKodlari"];
 
 async function hepsiniOku(ad, ilerleme) {

@@ -1,12 +1,12 @@
 import { ikon } from "../../lib/ikon.js";
 import { bashar, tipSinif } from "../../lib/tip.js";
-import { collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
+import { collection, getDocs, limit, orderBy, query, where } from "../../veri/firestore.js";
 import { $ } from "../../lib/dom.js";
 import { sessizAra } from "./sessiz-ara.js";
 import { csvIndir, htmlGuvenli, jsGuvenliMetin, metniNormalizeEt } from "../../lib/text.js";
 import { tumSehirler } from "../firms/benzer-firma.js";
 import { sehirGoster } from "../../lib/sehirler.js";
-import { db } from "../../firebase/init.js";
+import { db } from "../../veri/init.js";
 import { koddanNo } from "../../lib/firma-kodu.js";
 import { tarihKarsilastir, tarihiInputaCevir } from "../../lib/dates.js";
 import { duzenleyebilirMi, yoneticiMi } from "../../core/session.js";
@@ -208,15 +208,14 @@ window.sonuclariCsvIndir = function () {
 };
 
 /* Şehir / e-posta araması bir şehirdeki tüm kayıtları okumasın diye en yeni SEHIR_LIMIT kayıtla sınırlıdır.
-   Tarih filtresi verilirse sunucuda uygulanır (firestore.indexes.json: sehir+tarih, ekleyen+tarih). */
+   Tarih filtresi verilirse sunucuda uygulanır (veritabanı indeksleri: sehir, tarih). */
 const SEHIR_LIMIT = 300;
 const tarihliSorgu = (alan, deger, bas, bit) => {
   const k = [where(alan, "==", deger)];
   if (bas) k.push(where("tarih", ">=", new Date(bas + "T00:00:00").toISOString()));
   if (bit) k.push(where("tarih", "<=", new Date(bit + "T23:59:59").toISOString()));
   return getDocs(query(collection(db, "formlar"), ...k, orderBy("tarih", "desc"), limit(SEHIR_LIMIT))).catch(e => {
-    if (e.code !== "failed-precondition") throw e;   // bileşik indeks henüz yayınlanmadıysa eski (sırasız) sorguya düş
-    console.warn("İndeks eksik (firebase deploy --only firestore:indexes):", e.message);
+    if (e.code !== "failed-precondition") throw e;
     return getDocs(query(collection(db, "formlar"), where(alan, "==", deger), limit(SEHIR_LIMIT)));
   });
 };

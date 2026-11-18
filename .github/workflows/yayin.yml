@@ -1,5 +1,7 @@
 name: Yayinla
 
+# main'e her gönderimde: lint + test + derleme, sonra GitHub Pages'e yayın
+# (Settings → Pages → Source: GitHub Actions).
 on:
   push:
     branches: [main]
@@ -31,8 +33,8 @@ jobs:
       - run: npm test
       - run: npm run build
         env:
-          # Varsayılan: boş (AI, eski modda çalışır: anahtar Firestore'dan okunur). Bir AI proxy kurduysanız (Cloud Function
-          # veya Cloudflare Worker) adresini depo Variables altına VITE_AI_PROXY_URL adıyla ekleyin; site onu kullanır.
+          # Boşsa AI, Supabase Edge Function'ı (src/veri/config.js'teki proje adresi + /functions/v1/ai-proxy) kullanır.
+          # Başka bir proxy kullanacaksanız depo Variables altına VITE_AI_PROXY_URL ekleyin.
           VITE_AI_PROXY_URL: ${{ vars.VITE_AI_PROXY_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:

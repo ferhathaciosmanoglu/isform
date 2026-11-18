@@ -1,6 +1,6 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc, writeBatch } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../../firebase/init.js";
+import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc, writeBatch } from "../../veri/firestore.js";
+import { onAuthStateChanged } from "../../veri/auth.js";
+import { auth, db } from "../../veri/init.js";
 import { state } from "../../core/state.js";
 import { logYaz, yoneticiMi } from "../../core/session.js";
 import { $ } from "../../lib/dom.js";
@@ -11,7 +11,7 @@ import { disaridanKapat } from "../../ui/modal.js";
 
 /* ===== PERSONEL LİSTESİ =====
    İş formundaki 6 personel alanı + servis sorumlusu artık serbest yazı değil, listeden seçmeli.
-   Listenin sonunda "+ Yeni isim ekle…" vardır; eklenen isim Firestore'daki `personel` koleksiyonuna yazılır, herkeste görünür. */
+   Listenin sonunda "+ Yeni isim ekle…" vardır; eklenen isim veritabanındaki `personel` tablosuna yazılır, herkeste görünür. */
 const IDLER = ["ofP1", "ofP2", "ofP3", "ofP4", "ofP5", "ofP6", "ofSorumlu"], PERSONEL_IDLER = IDLER.slice(0, 6);
 const ONBELLEK = "personel_listesi", YENI = "__yeni__";
 let liste = [];   // { id, ad }
@@ -138,7 +138,7 @@ function yonetimAc() {
     kutu.innerHTML = liste.map((x, i) => `<div class="pm-satir"><span>${esc(x.ad)}</span><span><button type="button" class="btn-firma" data-ed="${i}">Düzenle</button><button type="button" class="btn-firma" data-sil="${i}" style="color:var(--danger)">Sil</button></span></div>`).join("") || '<div class="sonuc-bilgisi">Liste boş.</div>';
   };
   const yenile = () => { sirala(); onbellegeYaz(); doldur(); ciz(); };
-  const sunucuyaYazilmali = x => { if (x.id) return true; showToast("Bu isim henüz sunucuya yazılmamış (Firestore kuralları yayınlandı mı?).", "error"); return false; };
+  const sunucuyaYazilmali = x => { if (x.id) return true; showToast("Bu isim henüz sunucuya yazılmamış", "error"); return false; };
   m.querySelector("#pmEkle").onclick = async () => {
     const i = m.querySelector("#pmYeni"); if (!i.value.trim()) return;
     if (await isimEkle(i.value)) { i.value = ""; ciz(); }

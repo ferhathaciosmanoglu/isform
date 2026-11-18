@@ -1,10 +1,11 @@
-import { auth } from "../../firebase/init.js";
+import { auth } from "../../veri/init.js";
+import { supabaseUrl } from "../../veri/config.js";
 
 /* Gemini isteklerinin tek çıkış noktası.
-   - VITE_AI_PROXY_URL tanımlıysa istekler Cloud Function (functions/) üzerinden gider: API anahtarı yalnızca
-     sunucuda durur, tarayıcıya hiç inmez. Kullanıcı kimliği Firebase ID token'ı ile doğrulanır.
-   - Tanımlı değilse eski davranış sürer: anahtar tarayıcıdan doğrudan Google'a gönderilir. */
-const PROXY = String((import.meta.env && import.meta.env.VITE_AI_PROXY_URL) || "").replace(/\/+$/, "");
+   İstekler Supabase Edge Function'ı (supabase/functions/ai-proxy) üzerinden gider: API anahtarı yalnızca sunucuda durur,
+   tarayıcıya hiç inmez. Kullanıcı kimliği Supabase oturum belirteci (JWT) ile doğrulanır. Başka bir proxy için
+   VITE_AI_PROXY_URL verilebilir. */
+const PROXY = String((import.meta.env && import.meta.env.VITE_AI_PROXY_URL) || supabaseUrl + "/functions/v1/ai-proxy").replace(/\/+$/, "");
 const DOGRUDAN = "https://generativelanguage.googleapis.com/v1beta/";
 
 export const proxyAktif = () => !!PROXY;

@@ -1,6 +1,6 @@
-import { collection, getDocs, limit, query, where } from "firebase/firestore";
+import { collection, getDocs, limit, query, where } from "../../veri/firestore.js";
 import { htmlGuvenli, metniNormalizeEt } from "../../lib/text.js";
-import { db } from "../../firebase/init.js";
+import { db } from "../../veri/init.js";
 import { $ } from "../../lib/dom.js";
 import { sehirIsimleri } from "../../lib/sehirler.js";
 import { levenshtein } from "../../lib/levenshtein.js";

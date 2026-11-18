@@ -1,5 +1,5 @@
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { auth, db } from "../../firebase/init.js";
+import { doc, getDoc, setDoc } from "../../veri/firestore.js";
+import { auth, db } from "../../veri/init.js";
 import { logYaz } from "../../core/session.js";
 import { aiFetch, proxyAktif } from "./transport.js";
 
@@ -17,7 +17,7 @@ export async function aiAnahtarHazirla(zorla = false, sessiz = false) {
   if (proxyAktif()) return "proxy";   // anahtar sunucuda; tarayıcıda tutulmaz
   if (AI_ANAHTAR_SABIT) return AI_ANAHTAR_SABIT;
   let k = zorla ? "" : localStorage.getItem("gemini_key");
-  if (!k && !zorla && !aiBulutAtla) {   // başka cihazda girilmiş anahtarı Firestore'dan al
+  if (!k && !zorla && !aiBulutAtla) {   // başka cihazda girilmiş anahtarı veritabanından al
     try { const d = await getDoc(doc(db, "ayarlar", "gemini")); k = (d.exists() && d.data().anahtar || "").trim(); if (k) localStorage.setItem("gemini_key", k); }
     catch (e) { console.warn("Bulut anahtarı okunamadı:", e); }
   }

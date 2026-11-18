@@ -1,0 +1,3 @@
+# Supabase CLI ayarları (yalnızca fonksiyon yayını için). Yayın: supabase functions deploy ai-proxy
+[functions.ai-proxy]
+verify_jwt = false

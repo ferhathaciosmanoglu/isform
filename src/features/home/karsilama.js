@@ -1,13 +1,13 @@
-import { collection, getCountFromServer, getDocs, limit, orderBy, query, where } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "../../firebase/init.js";
+import { collection, getCountFromServer, getDocs, limit, orderBy, query, where } from "../../veri/firestore.js";
+import { onAuthStateChanged } from "../../veri/auth.js";
+import { auth, db } from "../../veri/init.js";
 import { state } from "../../core/state.js";
 import { $ } from "../../lib/dom.js";
 import { htmlGuvenli } from "../../lib/text.js";
 import { sehirGoster } from "../../lib/sehirler.js";
 
 /* Ana ekran karşılama kartı: selam, tarih, bugün/hafta/ay form sayısı, son form, gecikmiş bakım uyarısı, yeni kayıt kısayolu.
-   Sayılar Firestore sayım sorgusuyla alınır (belge okumaz, çok ucuzdur). */
+   Sayılar sayım sorgusuyla alınır (belge okumaz, çok ucuzdur). */
 const selam = () => { const h = new Date().getHours(); return h < 6 ? "İyi geceler" : h < 12 ? "Günaydın" : h < 18 ? "İyi günler" : "İyi akşamlar"; };
 const adCevir = mail => { const a = String(mail || "").split("@")[0].split(/[._-]/)[0]; return a ? a.charAt(0).toLocaleUpperCase("tr-TR") + a.slice(1) : "ENORPA"; };
 

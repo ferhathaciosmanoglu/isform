@@ -1,7 +1,7 @@
-import { collection, limit, onSnapshot, orderBy, query, where } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
+import { collection, limit, onSnapshot, orderBy, query, where } from "../../veri/firestore.js";
+import { onAuthStateChanged } from "../../veri/auth.js";
 import { state } from "../../core/state.js";
-import { auth, db } from "../../firebase/init.js";
+import { auth, db } from "../../veri/init.js";
 import { $ } from "../../lib/dom.js";
 import { bakimRozeti, gunFarki } from "../search/search.js";
 import { htmlGuvenli, jsGuvenliMetin, metniNormalizeEt } from "../../lib/text.js";

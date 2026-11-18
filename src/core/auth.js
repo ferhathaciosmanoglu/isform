@@ -1,7 +1,7 @@
-import { onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from "../veri/auth.js";
+import { doc, getDoc } from "../veri/firestore.js";
 import { state } from "./state.js";
-import { auth, db } from "../firebase/init.js";
+import { auth, db } from "../veri/init.js";
 import { $ } from "../lib/dom.js";
 import { tarihiInputaCevir } from "../lib/dates.js";
 import { duzenleyebilirMi, yoneticiMi } from "./session.js";
@@ -40,7 +40,6 @@ onAuthStateChanged(auth, user => {
       $("mainApp").style.display = "block";
       if (!$("formTarihi").value) $("formTarihi").value = tarihiInputaCevir();
       showToast("Giriş başarılı, hoş geldin!", "success");
-      $("btnOptimize").style.display = yoneticiMi() ? "block" : "none";
       $("btnKullanicilar").style.display = yoneticiMi() ? "block" : "none";
       const navlar = document.querySelectorAll(".nav-item");
       if (navlar[0]) navlar[0].style.display = duzenleyebilirMi() ? "" : "none";   // görüntüleyen form ekleyemez
@@ -62,7 +61,7 @@ $("loginForm").addEventListener("submit", e => {
     .catch(err => {
       console.error("Giriş hatası:", err.code, err.message);
       const kod = err.code || "";
-      const dogruMu = ["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found", "auth/invalid-email"].includes(kod);
+      const dogruMu = ["auth/invalid-credential", "auth/wrong-password", "auth/user-not-found", "auth/invalid-email", "auth/validation_failed"].includes(kod);
       $("loginError").textContent = dogruMu
         ? "Giriş başarısız. E-posta ve şifreyi kontrol edin."
         : "Giriş yapılamadı (" + (kod || "bilinmeyen hata") + "). Bu hata e-posta/şifreden değil, ayarlardan olabilir.";

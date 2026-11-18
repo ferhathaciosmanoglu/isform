@@ -1,5 +1,5 @@
 import { ikon } from "../../lib/ikon.js";
-import { deleteField, doc, getDoc, updateDoc } from "firebase/firestore";
+import { deleteField, doc, getDoc, updateDoc } from "../../veri/firestore.js";
 import { $ } from "../../lib/dom.js";
 import { aiButon, aiKutu, bugun, olay } from "./ui.js";
 import { aiAnahtarHazirla, gemini, geminiAkis } from "./gemini.js";
@@ -11,7 +11,7 @@ import { tarihiInputaCevir } from "../../lib/dates.js";
 import { levenshtein } from "../../lib/levenshtein.js";
 import { embedYap, vektorHazirla } from "./embeddings.js";
 import { VEKTOR_SURUM, kosinus, vektorAc, vektorMetni, vektorPaketle } from "../../lib/vektor.js";
-import { db } from "../../firebase/init.js";
+import { db } from "../../veri/init.js";
 import { sehirAdi } from "../reports/harita.js";
 import { aramaKutusu } from "../search/search.js";
 import { logYaz, yoneticiMi } from "../../core/session.js";

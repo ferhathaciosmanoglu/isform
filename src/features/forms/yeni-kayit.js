@@ -1,13 +1,13 @@
-import { deleteField, doc, updateDoc } from "firebase/firestore";
+import { deleteField, doc, updateDoc } from "../../veri/firestore.js";
 import { state } from "../../core/state.js";
 import { $ } from "../../lib/dom.js";
 import { metniNormalizeEt } from "../../lib/text.js";
 import { ayEkle, inputtanIsoYap, tarihiInputaCevir } from "../../lib/dates.js";
 import { getLocation } from "../../lib/konum.js";
-import { cevrimdisiNoBildir, formNoAyir } from "../firms/firma-kodu-servis.js";
+import { formNoAyir } from "../firms/firma-kodu-servis.js";
 import { vektorHazirla } from "../ai/embeddings.js";
 import { ziyaretHazirla } from "../ai/ziyaret-oku.js";
-import { belgeEkle, db, kuyrugaAl } from "../../firebase/init.js";
+import { belgeEkle, db, kuyrugaAl } from "../../veri/init.js";
 import { logYaz } from "../../core/session.js";
 
 export const btnMic = $("btnMic"), aciklamaNotu = $("aciklamaNotu");
@@ -79,7 +79,6 @@ const compressImage = async file => {
   });
 };
 
-window.addEventListener("online", () => showToast("Bağlantı geldi, bekleyen kayıtlar gönderiliyor…", "info"));
 
 const kaydetEtiket = "Konumla kaydet";
 
@@ -87,6 +86,7 @@ $("isFormu").addEventListener("submit", async e => {
   e.preventDefault();
   const btn = $("ekleButonu");
   if (window.kayitKilit) return;            // çift tıklama / çift submit koruması
+  if (!navigator.onLine) { showToast("İnternet bağlantısı yok.", "error"); return; }
   if (!secilenFotolar.length) { showToast("Lütfen en az bir fotoğraf ekleyin.", "error"); return; }
   window.kayitKilit = true;
   btn.disabled = true; btn.innerText = "📍 Konum alınıyor…";
@@ -105,8 +105,7 @@ $("isFormu").addEventListener("submit", async e => {
       return;
     }
     const konum = await getLocation();
-    const { firmaKodu, ilkNo: siradakiNo, cevrimdisi } = await formNoAyir(aramaFirma, dosyalar.length || 1);
-    if (cevrimdisi) cevrimdisiNoBildir(aramaFirma, firmaKodu, siradakiNo + dosyalar.length - 1);
+    const { firmaKodu, ilkNo: siradakiNo } = await formNoAyir(aramaFirma, dosyalar.length || 1);
     const vk = await vektorHazirla(islemTipi, aciklama);   // anlamsal arama vektörü (en fazla ~2 sn bekler, olmazsa kayıt yine eklenir)
 
     for (let i = 0; i < dosyalar.length; i++) {
@@ -130,7 +129,6 @@ $("isFormu").addEventListener("submit", async e => {
           eklenmeTarihi: new Date().toISOString()
       };
       Object.assign(payload, vk, zy);
-      if (cevrimdisi) payload.numaraCevrimdisi = true;   // çevrimdışı verilen numara: nadiren çakışabilir, yönetici görebilsin
       if (konum) payload.konum = konum;
       const aralik = $("bakimAralik").value; if (aralik) payload.bakimAralik = Number(aralik);
       if ($("bakimTarihi").value) payload.sonrakiBakim = inputtanIsoYap($("bakimTarihi").value);
@@ -140,7 +138,7 @@ $("isFormu").addEventListener("submit", async e => {
     }
     if (window.bakimKaynakId) { try { await kuyrugaAl(updateDoc(doc(db, "formlar", window.bakimKaynakId), { sonrakiBakim: deleteField() })); } catch (e) { console.error(e); } window.bakimKaynakId = null; }
     window.sonKayitImza = { k: imza, t: Date.now() };
-    showToast(navigator.onLine ? "Başarıyla eklendi! 🎉" : "Çevrimdışı kaydedildi, bağlantı gelince otomatik gönderilecek 📡", navigator.onLine ? "success" : "info");
+    showToast("Başarıyla eklendi! 🎉", "success");
     $("isFormu").reset();
     $("formTarihi").value = tarihiInputaCevir();
     secilenFotolar = []; fotolariCiz();

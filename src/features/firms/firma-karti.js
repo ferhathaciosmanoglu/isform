@@ -1,8 +1,8 @@
-import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, setDoc, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, limit, onSnapshot, orderBy, query, setDoc, where } from "../../veri/firestore.js";
 import { state } from "../../core/state.js";
 import { $ } from "../../lib/dom.js";
-import { auth, db } from "../../firebase/init.js";
-import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "../../veri/init.js";
+import { onAuthStateChanged } from "../../veri/auth.js";
 import { duzenleyebilirMi, logYaz, yoneticiMi } from "../../core/session.js";
 import { SIRA_YONU, kartDokumuHTML } from "../search/search.js";
 import { tarihKarsilastir } from "../../lib/dates.js";
