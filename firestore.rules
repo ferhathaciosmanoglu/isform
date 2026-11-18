@@ -25,7 +25,7 @@ service cloud.firestore {
     function formAlanlari() {
       return ['firmaAdi', 'aramaFirma', 'sehir', 'islemTipi', 'aciklama', 'ekleyen', 'fotoId', 'firmaKodu', 'formNo',
               'formKodu', 'tarih', 'eklenmeTarihi', 'konum', 'bakimAralik', 'sonrakiBakim', 'vektor', 'vektorSurum',
-              'olusturulan', 'formVerisi', 'ekFotoIdler', 'imzaId', 'numaraCevrimdisi', 'fotograf'];
+              'olusturulan', 'formVerisi', 'ekFotoIdler', 'imzaId', 'numaraCevrimdisi', 'fotograf', 'ziyaret'];
     }
     function gecerliForm() {
       return yeni().keys().hasOnly(formAlanlari())
@@ -37,6 +37,7 @@ service cloud.firestore {
         && (!('bakimAralik' in yeni()) || (yeni().bakimAralik is number && yeni().bakimAralik > 0 && yeni().bakimAralik <= 120))
         && (!('konum' in yeni()) || (yeni().konum.lat is number && yeni().konum.lng is number))
         && (!('formVerisi' in yeni()) || yeni().formVerisi is map)
+        && (!('ziyaret' in yeni()) || yeni().ziyaret is map)
         && !('fotograf' in yeni());
     }
 

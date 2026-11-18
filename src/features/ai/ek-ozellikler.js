@@ -15,6 +15,7 @@ import { db } from "../../firebase/init.js";
 import { sehirAdi } from "../reports/harita.js";
 import { aramaKutusu } from "../search/search.js";
 import { logYaz, yoneticiMi } from "../../core/session.js";
+import { ziyaretPersonel } from "../../lib/ziyaret.js";
 
 /* 1) Not alanları (İş formu tara + İş formu oluştur): yalnızca "Notu düzelt" ve "Notu kontrol et" */
 for (const id of ["aciklamaNotu", "ofAciklama"]) {
@@ -164,6 +165,7 @@ async function aiResim(f) {
       if (p.islemTipi && v.islemTipi !== p.islemTipi) return;
       if (p.baslangic && t < p.baslangic) return; if (p.bitis && t > p.bitis) return;
       if (p.ekleyen && !(v.ekleyen || "").toLowerCase().includes(String(p.ekleyen).toLowerCase())) return;
+      if (p.personel && !ziyaretPersonel(v).some(a => nrm(a).includes(nrm(p.personel)))) return;
       if (p.bakim === "gecikmis" && !(sb && sb < bg)) return;
       if (p.bakim === "yaklasan" && !(sb && sb >= bg && sb <= lim)) return;
       if (kel.length) { const m = nrm(v.aciklama); if (!kel.some(x => m.includes(x))) return; }
@@ -178,11 +180,12 @@ async function aiResim(f) {
     sehir: v => sehirAdi[nrm(v.sehir)] || v.sehir || "?",
     islemTipi: v => v.islemTipi || "?",
     ay: v => (v.tarih || "").slice(0, 7) || "?",
-    ekleyen: v => v.ekleyen || "?"
+    ekleyen: v => v.ekleyen || "?",
+    personel: v => { const l = ziyaretPersonel(v); return l.length ? l : "(personel okunmamış)"; }
   };
   const asSay = (out, g, en = 25) => {
     const f = anahtarlar[g]; if (!f) return "";
-    const c = {}; out.forEach(x => { const a = f(x.v); c[a] = (c[a] || 0) + 1; });
+    const c = {}; out.forEach(x => { [].concat(f(x.v)).forEach(a => { c[a] = (c[a] || 0) + 1; }); });
     return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, en).map(([a, b]) => `${a}: ${b}`).join("\n");
   };
   const satirYap = v => {
@@ -247,10 +250,10 @@ async function aiResim(f) {
             if (sira.length) { out = sira; anlamsalNot = `Kayıtlar "${p.anlamsal}" ifadesine anlamsal benzerliğe göre sıralandı (kayıtların %${Math.round(kapsam * 100)}'i indeksli). Gerçekten benzer kayıt yoksa bunu açıkça söyle.`; }
           } catch (e) { console.warn("Anlamsal arama:", e); }
         }
-        const f = [p.firma && "firma: " + p.firma, p.sehir && "şehir: " + p.sehir, p.islemTipi && "işlem: " + p.islemTipi, p.baslangic && "başlangıç: " + p.baslangic, p.bitis && "bitiş: " + p.bitis, p.ekleyen && "ekleyen: " + p.ekleyen, p.bakim && "bakım: " + p.bakim, (p.anahtar || []).length && "notta geçen: " + p.anahtar.join(", "), p.anlamsal && "anlamsal: " + p.anlamsal].filter(Boolean).join(" · ");
+        const f = [p.firma && "firma: " + p.firma, p.sehir && "şehir: " + p.sehir, p.islemTipi && "işlem: " + p.islemTipi, p.baslangic && "başlangıç: " + p.baslangic, p.bitis && "bitiş: " + p.bitis, p.ekleyen && "ekleyen: " + p.ekleyen, p.personel && "giden personel: " + p.personel, p.bakim && "bakım: " + p.bakim, (p.anahtar || []).length && "notta geçen: " + p.anahtar.join(", "), p.anlamsal && "anlamsal: " + p.anlamsal].filter(Boolean).join(" · ");
         const firmaSay = new Set(out.map(x => nrm(x.v.firmaAdi || x.v.aramaFirma))).size;
         const grup = asSay(out, p.gruplama), tip = asSay(out, "islemTipi");
-        const veri = out.slice(0, 60).map(({ v }) => [(v.tarih || "").slice(0, 10), v.firmaAdi || v.aramaFirma, sehirAdi[nrm(v.sehir)] || v.sehir, v.islemTipi, (v.aciklama || "").slice(0, 220), v.sonrakiBakim ? "sonraki bakım:" + v.sonrakiBakim.slice(0, 10) : ""].join(" | ")).join("\n");
+        const veri = out.slice(0, 60).map(({ v }) => [(v.tarih || "").slice(0, 10), v.firmaAdi || v.aramaFirma, sehirAdi[nrm(v.sehir)] || v.sehir, v.islemTipi, (v.aciklama || "").slice(0, 220), v.sonrakiBakim ? "sonraki bakım:" + v.sonrakiBakim.slice(0, 10) : "", ziyaretPersonel(v).join(", ")].join(" | ")).join("\n");
         istem = AI_PROMPT.asVeri({ konusma: konusma(), soru, toplam: snap.size, filtre: f, eslesen: out.length, firmaSay, tip, grup, gruplamaAd: p.gruplama, anlamsal: anlamsalNot, veri });
       } else {
         istem = AI_PROMPT.asSohbet(konusma(), soru);

@@ -2,7 +2,7 @@ import { aiSis, bugun } from "./ui.js";
 
 /* ===== AI: TÜM PROMPT VE ŞEMALAR TEK YERDE (metni değiştirirken surum'u artırın) ===== */
 export const AI_PROMPT = {
-  surum: 4,
+  surum: 5,
   sistem: aiSis,
   notDuzelt: n => "Aşağıdaki servis notunu yazım hatalarını düzelterek, kısa ve resmî bir servis raporu diline çevir. Bilgi ekleme, çıkarma. Sadece düzeltilmiş metni ver.\n\n" + n,
   notKontrol: (tip, n) => `İşlem tipi: ${tip || "belirtilmemiş"}. Bu servis notunda eksik kalmış önemli bilgileri (arıza nedeni, değişen parça, yapılan işlem, test/sonuç, müşteriye bildirilen durum) kısa sorular halinde listele. Eksik yoksa sadece "Eksik görünmüyor" yaz.\n\nNot: ${n}`,
@@ -11,12 +11,13 @@ export const AI_PROMPT = {
   raporYorum: veri => `Bugün: ${bugun()}. Bu servis kayıt istatistiklerini yöneticiye 5-6 maddede yorumla: öne çıkanlar, artış/azalış, dikkat edilmesi gerekenler. Sayıları aynen kullan.\n${JSON.stringify(veri)}`,
   kartvizit: 'Kartvizitten JSON çıkar: {"yetkili":"","firma":"","telefon":"","eposta":"","adres":""}. Okunamayanı boş bırak, uydurma.',
   formOku: "Bu bir servis iş formu fotoğrafı (el yazısı olabilir, ters/yan çekilmiş olabilir). Formda yazan yapılan işlem, arıza, değişen parça ve notları okuyup 'Açıklama' alanına yazılacak düzgün ve kısa bir Türkçe metin olarak yaz. Okunamayan veya görünmeyen bilgiyi uydurma. Hiç okunabilir açıklama yoksa sadece OKUNAMADI yaz. Sadece metni ver.",
+  ziyaretOku: "Bu bir ENORPA servis iş formu fotoğrafı (el yazısı olabilir, ters/yan çekilmiş olabilir). Formun 'Personeller' bölümünde yazan ENORPA personelinin ad soyadlarını (en fazla 6 kişi) ve servisin yapıldığı tarihi oku. 'Servis Sorumlusu' müşteri firmanın yetkilisidir: onu personel listesine KOYMA. Okunamayan veya görünmeyen bilgiyi uydurma; hiç isim yoksa personel boş dizi olsun. Tarihi YYYY-MM-DD olarak ver (gün.ay.yıl yazılmışsa çevir); okunamıyorsa boş bırak. okundu: form okunabilir bir iş formuysa true, bulanık/alakasız ise false.",
   asPlan: (konusma, soru) => `Bugün: ${bugun()}. Bir servis kayıt uygulamasının asistanısın. Kullanıcının son mesajının servis kayıtlarına bakmayı gerektirip gerektirmediğine karar ver ve filtreleri çıkar. Önceki konuşma varsa ("peki Konya'da?", "onların hepsi") bağlamdan tamamla.
-Sadece JSON ver: {"kayit":true,"firma":"","sehir":"","islemTipi":"Bakım|Arıza|Müşteri Ziyareti|Kurulum|Keşif|Diğer veya boş","baslangic":"YYYY-MM-DD veya boş","bitis":"YYYY-MM-DD veya boş","anahtar":["notlarda geçecek kelimelerin KÖK hali, ek almamış"],"ekleyen":"e-posta parçası veya boş","bakim":"gecikmis|yaklasan|boş","yaklasanGun":7,"gruplama":"firma|sehir|islemTipi|ay|ekleyen|boş","sirala":"yeni|eski","anlamsal":"boş veya aranacak kısa metin"}
-"Geçen yıl", "son 3 ay", "bu ay", "geçen hafta" gibi ifadeleri tarihe çevir. Sadece sorulanı doldur, fazlasını ekleme. Sayma, "en çok", "dağılım" soruları için gruplama doldur. Kullanıcı bir arıza belirtisi/sorun tarif edip benzer geçmiş kayıtları, daha önce çıkıp çıkmadığını veya çözümünü soruyorsa (ör. "kazan basıncı düşüyor, benzeri var mı?") anlamsal alanına sorunu anlatan kısa bir arama metni yaz. Genel sohbet, mesaj/e-posta taslağı yazma, uygulama nasıl kullanılır gibi sorularda kayit=false.\n\nÖnceki konuşma:\n${konusma}\n\nSon mesaj: ${soru}`,
+Sadece JSON ver: {"kayit":true,"firma":"","sehir":"","islemTipi":"Bakım|Arıza|Müşteri Ziyareti|Kurulum|Keşif|Diğer veya boş","baslangic":"YYYY-MM-DD veya boş","bitis":"YYYY-MM-DD veya boş","anahtar":["notlarda geçecek kelimelerin KÖK hali, ek almamış"],"ekleyen":"e-posta parçası veya boş","personel":"ENORPA'dan giden kişinin adı veya boş","bakim":"gecikmis|yaklasan|boş","yaklasanGun":7,"gruplama":"firma|sehir|islemTipi|ay|ekleyen|personel|boş","sirala":"yeni|eski","anlamsal":"boş veya aranacak kısa metin"}
+"Geçen yıl", "son 3 ay", "bu ay", "geçen hafta" gibi ifadeleri tarihe çevir. Sadece sorulanı doldur, fazlasını ekleme. Sayma, "en çok", "dağılım" soruları için gruplama doldur. Kullanıcı bir arıza belirtisi/sorun tarif edip benzer geçmiş kayıtları, daha önce çıkıp çıkmadığını veya çözümünü soruyorsa (ör. "kazan basıncı düşüyor, benzeri var mı?") anlamsal alanına sorunu anlatan kısa bir arama metni yaz. "X firmasına ENORPA'dan kim kaç kez gitti" gibi sorularda firma doldur ve gruplama="personel" yap; belirli bir kişinin gittiği yerler sorulursa personel alanını doldur. Genel sohbet, mesaj/e-posta taslağı yazma, uygulama nasıl kullanılır gibi sorularda kayit=false.\n\nÖnceki konuşma:\n${konusma}\n\nSon mesaj: ${soru}`,
   asSistem: "Sen ENORPA teknik servis firmasının uygulama asistanısın. Türkçe, kısa ve net yaz. Sayıları ve listeleri yalnızca sana verilen sayımlardan ve kayıtlardan al, kendin sayma, kayıtta olmayanı uydurma. Eşleşme yoksa bunu söyle ve yazımı kontrol etmesini öner. Gerekirse madde işareti kullan, önemli yerleri **kalın** yaz. Uygulamada Yeni (form ekleme), Ara (firma, şehir, ürün kodu, e-posta ile arama), Akış ve Rapor sekmeleri, firma kartı, bakım takibi ve yönetici paneli vardır; nasıl kullanılır diye sorulursa buna göre anlat. Mesaj, e-posta veya teklif taslağı istenirse doğrudan taslağı yaz.",
   asSohbet: (konusma, soru) => `Bugün: ${bugun()}.\nÖnceki konuşma:\n${konusma}\n\nKullanıcının mesajı: ${soru}`,
-  asVeri: o => `Bugün: ${bugun()}.\nÖnceki konuşma:\n${o.konusma}\n\nKullanıcının sorusu: ${o.soru}\n\nUygulamadaki toplam kayıt: ${o.toplam}. Uygulanan filtreler: ${o.filtre || "yok"}.\nEşleşen kayıt sayısı: ${o.eslesen}, firma sayısı: ${o.firmaSay}.\n${o.tip ? "İşlem tipi dağılımı:\n" + o.tip + "\n" : ""}${o.grup ? "Gruplama (" + o.gruplamaAd + "):\n" + o.grup + "\n" : ""}${o.anlamsal ? o.anlamsal + "\n" : ""}\nKayıtlar (en fazla 60; tarih | firma | şehir | işlem | not | sonraki bakım):\n${o.veri || "(eşleşen kayıt yok)"}`
+  asVeri: o => `Bugün: ${bugun()}.\nÖnceki konuşma:\n${o.konusma}\n\nKullanıcının sorusu: ${o.soru}\n\nUygulamadaki toplam kayıt: ${o.toplam}. Uygulanan filtreler: ${o.filtre || "yok"}.\nEşleşen kayıt sayısı: ${o.eslesen}, firma sayısı: ${o.firmaSay}.\n${o.tip ? "İşlem tipi dağılımı:\n" + o.tip + "\n" : ""}${o.grup ? "Gruplama (" + o.gruplamaAd + "):\n" + o.grup + "\n" : ""}${o.anlamsal ? o.anlamsal + "\n" : ""}\nKayıtlar (en fazla 60; tarih | firma | şehir | işlem | not | sonraki bakım | giden personel). Her kayıt bir ziyarettir; "kaç kez gitti" sorusunda eşleşen kayıt sayısını ve personel gruplamasını kullan. Personel bilgisi okunmamış kayıtlarda boş görünür:\n${o.veri || "(eşleşen kayıt yok)"}`
 };
 
 /* Gemini responseSchema: alan adları ve enum değerleri garanti olur. Reddedilirse gemini() şemasız dener. */
@@ -26,11 +27,12 @@ export const AI_SEMA = {
       kayit: { type: "BOOLEAN" }, firma: { type: "STRING" }, sehir: { type: "STRING" },
       islemTipi: { type: "STRING", enum: ["Bakım", "Arıza", "Müşteri Ziyareti", "Kurulum", "Keşif", "Diğer"] },
       baslangic: { type: "STRING", description: "YYYY-MM-DD" }, bitis: { type: "STRING", description: "YYYY-MM-DD" },
-      anahtar: { type: "ARRAY", items: { type: "STRING" } }, ekleyen: { type: "STRING" },
+      anahtar: { type: "ARRAY", items: { type: "STRING" } }, ekleyen: { type: "STRING" }, personel: { type: "STRING" },
       bakim: { type: "STRING", enum: ["gecikmis", "yaklasan"] }, yaklasanGun: { type: "INTEGER" },
-      gruplama: { type: "STRING", enum: ["firma", "sehir", "islemTipi", "ay", "ekleyen"] },
+      gruplama: { type: "STRING", enum: ["firma", "sehir", "islemTipi", "ay", "ekleyen", "personel"] },
       sirala: { type: "STRING", enum: ["yeni", "eski"] }, anlamsal: { type: "STRING" }
     }
   },
+  ziyaret: { type: "OBJECT", required: ["okundu", "personel"], properties: { okundu: { type: "BOOLEAN" }, personel: { type: "ARRAY", items: { type: "STRING" } }, tarih: { type: "STRING", description: "YYYY-MM-DD" } } },
   kartvizit: { type: "OBJECT", properties: { yetkili: { type: "STRING" }, firma: { type: "STRING" }, telefon: { type: "STRING" }, eposta: { type: "STRING" }, adres: { type: "STRING" } } }
 };
