@@ -6,8 +6,7 @@ import { logYaz, yoneticiMi } from "../../core/session.js";
 import { $ } from "../../lib/dom.js";
 import { htmlGuvenli } from "../../lib/text.js";
 import { ikon } from "../../lib/ikon.js";
-import { AiHata, gemini } from "./gemini.js";
-import { AI_PROMPT, AI_SEMA } from "./prompts.js";
+import { ziyaretFotodanOku } from "./ziyaret-oku.js";
 import { raporKayitYama, raporVerisi } from "../reports/rapor-veri.js";
 import { aiZiyaret, formdanZiyaret, ziyaretOzetle, ziyaretVar } from "../../lib/ziyaret.js";
 
@@ -52,15 +51,7 @@ const fotoKaynagi = async v => {
 
 async function fotodanOku(v) {
   const src = await fotoKaynagi(v);
-  if (!src.startsWith("data:")) return null;   // fotoğraf yok / bozuk: işaretleme, sonra tekrar denenebilsin
-  const parts = [{ inlineData: { mimeType: src.slice(5, src.indexOf(";")), data: src.split(",")[1] } }, { text: AI_PROMPT.ziyaretOku }];
-  for (let deneme = 0; ; deneme++) {
-    try { return await gemini(parts, { json: true, sema: AI_SEMA.ziyaret, sistem: AI_PROMPT.sistem }); }
-    catch (e) {
-      if (!(e instanceof AiHata) || !(e.bekle > 0) || deneme >= 1) throw e;   // kota dolduysa bir kez bekleyip yeniden dener
-      await bekle(Math.min(e.bekle, 90) * 1000 + 500);
-    }
-  }
+  return src.startsWith("data:") ? ziyaretFotodanOku(src) : null;   // fotoğraf yok / bozuk: işaretleme, sonra tekrar denenebilsin
 }
 
 let calisiyor = false, durdur = false;

@@ -8,6 +8,7 @@ import { formNoAyir } from "../firms/firma-kodu-servis.js";
 import { db } from "../../firebase/init.js";
 import { inputtanIsoYap, tarihiInputaCevir } from "../../lib/dates.js";
 import { vektorHazirla } from "../ai/embeddings.js";
+import { formdanZiyaret } from "../../lib/ziyaret.js";
 import { logYaz } from "../../core/session.js";
 import { ikon } from "../../lib/ikon.js";
 
@@ -88,6 +89,7 @@ $("olusturFormu").addEventListener("submit", async e => {
       eklenmeTarihi: new Date().toISOString(), olusturulan: true, formVerisi };
     if (ekIdler.length) payload.ekFotoIdler = ekIdler;
     if (imzaId) payload.imzaId = imzaId;
+    payload.ziyaret = formdanZiyaret(payload);   // personel formda yazılı: AI gerekmez
     Object.assign(payload, await vektorHazirla(payload.islemTipi, payload.aciklama));
     if (konum) payload.konum = konum;
     await addDoc(collection(db, "formlar"), payload);
