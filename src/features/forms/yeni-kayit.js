@@ -6,6 +6,7 @@ import { ayEkle, inputtanIsoYap, tarihiInputaCevir } from "../../lib/dates.js";
 import { getLocation } from "../../lib/konum.js";
 import { cevrimdisiNoBildir, formNoAyir } from "../firms/firma-kodu-servis.js";
 import { vektorHazirla } from "../ai/embeddings.js";
+import { ziyaretHazirla } from "../ai/ziyaret-oku.js";
 import { belgeEkle, db, kuyrugaAl } from "../../firebase/init.js";
 import { logYaz } from "../../core/session.js";
 
@@ -112,6 +113,8 @@ $("isFormu").addEventListener("submit", async e => {
       btn.innerText = `Yükleniyor (${i + 1}/${dosyalar.length})…`;
       const foto = await compressImage(dosyalar[i]);
       const fotoRef = await belgeEkle("formFotograflari", { base64: foto });
+      btn.innerText = `Form okunuyor (${i + 1}/${dosyalar.length})…`;
+      const zy = await ziyaretHazirla(foto, tarihIso);   // personel + tarih (en fazla ~15 sn; olmazsa kayıt yine eklenir)
       const payload = {
           firmaAdi,
           aramaFirma,
@@ -126,7 +129,7 @@ $("isFormu").addEventListener("submit", async e => {
           tarih: tarihIso,
           eklenmeTarihi: new Date().toISOString()
       };
-      Object.assign(payload, vk);
+      Object.assign(payload, vk, zy);
       if (cevrimdisi) payload.numaraCevrimdisi = true;   // çevrimdışı verilen numara: nadiren çakışabilir, yönetici görebilsin
       if (konum) payload.konum = konum;
       const aralik = $("bakimAralik").value; if (aralik) payload.bakimAralik = Number(aralik);
