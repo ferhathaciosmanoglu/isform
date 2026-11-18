@@ -38,7 +38,8 @@ src/
   features/    forms, search, firms, maintenance, reports, admin, ai
   styles/      CSS parçaları
 supabase/migrations/   veritabanı şeması, güvenlik politikaları (RLS) ve fonksiyonlar
-cloudflare/ai-proxy/   AI proxy (Cloudflare Worker)
+cloudflare/ai-proxy/   AI proxy + sesli asistan (Cloudflare Worker)
+scripts/firebase-tasi/ Firestore → Supabase tek seferlik veri taşıma betiği
 tests/         unit (node:test), smoke (Playwright, sahte veri katmanı), entegrasyon (gerçek Supabase)
 ```
 
@@ -62,15 +63,22 @@ Depoyu Cloudflare Pages'e bağlayın (Build command: `npm run build`, output: `d
 `.github/workflows/yayin.yml` her `main` gönderiminde yayınlar:
 `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (proje adı: Variables → `CF_PAGES_PROJE`, varsayılan `enorpa-isform`).
 
-### 3. AI proxy (Cloudflare Worker)
-Gemini anahtarı yalnızca sunucuda durur; kullanıcı kimliği Supabase oturumuyla doğrulanır.
+### 3. AI proxy ve sesli asistan (Cloudflare Worker)
+Gemini anahtarı yalnızca sunucuda durur; kullanıcı kimliği Supabase oturumuyla doğrulanır. Aynı Worker Siri/Android
+kestirmesi için `POST /asistan` uç noktasını da sunar.
 
 ```bash
 cd cloudflare/ai-proxy
 # wrangler.toml → IZINLI_ORIGINLER: yayın adresiniz (CORS)
 npx wrangler secret put GEMINI_API_KEY
+npx wrangler secret put SHORTCUT_TOKEN              # ali:UZUN_RASTGELE,ayse:UZUN_RASTGELE  (anahtar ≥ 24 karakter; openssl rand -hex 24)
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY   # yalnızca /asistan için
 npx wrangler deploy
 ```
+
+**Siri (iPhone):** Kestirmeler → "Metin Dikte Et" → "URL İçeriğini Al" (yöntem POST, adres `https://WORKER/asistan?format=text`,
+başlık `x-asistan-anahtari: <kişinin anahtarı>`, gövde JSON `{"soru": <dikte edilen>}`) → "Metni Söyle". Bir telefon kaybolursa
+yalnızca o kişinin anahtarını `SHORTCUT_TOKEN`'dan çıkarıp secret'ı yeniden yazın. Anahtar tüm servis kayıtlarını okuyabilir; paylaşmayın.
 
 Çıkan Worker adresini GitHub'da **Variables → `VITE_AI_PROXY_URL`** olarak ekleyin (ya da yerelde `.env`) ve siteyi yeniden yayınlayın.
 Proxy yoksa uygulama eski modda çalışır: anahtar her cihazda elle girilir ve tarayıcıda saklanır (önerilmez).
@@ -87,5 +95,5 @@ ekranından yönetilir.
 ## Bilinen noktalar
 - Çevrimdışı kayıt desteklenmez: giriş ve form kaydı için internet gerekir.
 - Form fotoğrafları Supabase Storage'dadır (özel bucket); uygulama onları base64 olarak indirip gösterir.
-- Siri/Android kestirme uç noktası (`asistan`) henüz Cloudflare'e taşınmadı.
-- Firebase'den veri aktarımı ayrı bir adımdır (eski Firestore verisi ve fotoğrafları bu sürümde otomatik gelmez).
+- Firebase'den veri aktarımı ayrı bir adımdır: `scripts/firebase-tasi/` (README'sine bakın). Kullanıcıların giriş hesapları
+  (şifreler) taşınamaz, Supabase'de yeniden açılır.

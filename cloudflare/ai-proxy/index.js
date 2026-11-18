@@ -1,7 +1,8 @@
-/* ENORPA — Cloudflare Worker: AI proxy
-   Tarayıcıdan gelen Gemini isteklerini, API anahtarını sunucuda tutarak Google'a iletir (anahtar tarayıcıya inmez).
-   Kullanıcı kimliği Supabase oturum belirteci (JWT) ile doğrulanır; yalnızca profiller tablosunda aktif rolü olanlar kullanır.
-   Kurulum: README.md → "AI proxy (Cloudflare Worker)". */
+/* ENORPA — Cloudflare Worker
+   1) AI proxy (/models/...): tarayıcıdan gelen Gemini isteklerini, API anahtarını sunucuda tutarak Google'a iletir.
+      Kullanıcı kimliği Supabase oturum belirteci (JWT) ile doğrulanır; yalnızca profiller tablosunda aktif rolü olanlar kullanır.
+   2) Sesli asistan (POST /asistan): Siri Kestirmeleri / Android otomasyonları için tek uçlu soru-cevap.
+   Kurulum: README.md → "AI proxy ve sesli asistan (Cloudflare Worker)". */
 const GEMINI = "https://generativelanguage.googleapis.com/v1beta/";
 const GOVDE_SINIRI = 4 * 1024 * 1024;   // uygulamanın en büyük isteği (fotoğraf okuma) ~1 MB
 /* Yalnızca uygulamanın kullandığı Gemini yöntemlerine izin verilir */
@@ -45,6 +46,74 @@ async function kullaniciDogrula(istek, env) {
   return mail;
 }
 
+/* ---------- 2) Siri / Android sesli asistan ---------- */
+const MODELLER = ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-2.5-flash-lite", "gemini-3.5-flash"];
+const SISTEM = "Sen bir teknik servis firmasının sesli yardımcısısın. Türkçe, kısa ve konuşma diliyle cevap ver; madde işareti, yıldız veya başlık kullanma. Yalnızca verilen servis kayıtlarına dayan, kayıtta olmayan bilgiyi asla uydurma; bilmiyorsan 'Kayıtlarda bulamadım' de.";
+
+function guvenliKarsilastir(a, b) {
+  if (a.length !== b.length) return false;
+  let fark = 0; for (let i = 0; i < a.length; i++) fark |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return fark === 0;
+}
+
+/* SHORTCUT_TOKEN birden çok kişiye ayrı anahtar verilebilsin diye "etiket:anahtar,etiket:anahtar" biçimindedir
+   (tek anahtar biçimi de çalışır). Bir kişinin telefonu kaybolursa yalnızca onun anahtarı çıkarılır. */
+function anahtarSahibi(gelen, env) {
+  if (!gelen) return null;
+  for (const parca of String(env.SHORTCUT_TOKEN || "").split(",").map(x => x.trim()).filter(Boolean)) {
+    const i = parca.indexOf(":"), etiket = i > 0 ? parca.slice(0, i) : "varsayilan", anahtar = i > 0 ? parca.slice(i + 1) : parca;
+    if (anahtar.length >= 24 && guvenliKarsilastir(gelen, anahtar)) return etiket;
+  }
+  return null;
+}
+
+async function geminiSor(istem, env) {
+  let son;
+  for (const md of MODELLER) {
+    const r = await fetch(`${GEMINI}models/${md}:generateContent`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: SISTEM }] }, contents: [{ role: "user", parts: [{ text: istem }] }], generationConfig: { temperature: 0.2 } })
+    });
+    if (r.ok) {
+      const j = await r.json();
+      const t = ((j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts) || []).map(p => p.text || "").join("").trim();
+      if (t) return t;
+      son = new HttpHata(502, "Boş yanıt geldi");
+    } else if (r.status === 404 || r.status === 429) { son = new HttpHata(r.status === 429 ? 429 : 502, "Model şu an kullanılamıyor"); }
+    else throw new HttpHata(502, `Gemini hatası ${r.status}`);
+  }
+  throw son || new HttpHata(502, "Yanıt alınamadı");
+}
+
+/* Veritabanı işlevleri yalnızca service_role ile çağrılabilir (supabase/migrations/..._asistan_fonksiyonlari.sql) */
+const rpc = (env, ad, govde) => fetch(`${env.SUPABASE_URL}/rest/v1/rpc/${ad}`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", apikey: env.SUPABASE_SERVICE_ROLE_KEY, Authorization: "Bearer " + env.SUPABASE_SERVICE_ROLE_KEY },
+  body: JSON.stringify(govde)
+});
+
+async function asistan(istek, env, url) {
+  if (istek.method !== "POST") throw new HttpHata(405, "POST kullanın");
+  const sahip = anahtarSahibi(istek.headers.get("x-asistan-anahtari") || "", env);
+  if (!sahip) throw new HttpHata(401, "Yetkisiz");
+  hizSiniri("asistan:" + sahip, 30);
+  let govde = {}; try { govde = await istek.json(); } catch { /* boş gövde */ }
+  const soru = String((govde && govde.soru) || url.searchParams.get("soru") || "").trim().slice(0, 500);
+  if (!soru) throw new HttpHata(400, "Soru boş");
+
+  /* v1: son 200 kayıt bağlam olarak verilir (fotoğraf, vektör, form verisi indirilmez) */
+  const r = await rpc(env, "asistan_son_kayitlar", { p_adet: 200 });
+  if (!r.ok) throw new HttpHata(502, "Kayıtlar okunamadı");
+  const satirlar = (await r.json()).map(x => [String(x.tarih || "").slice(0, 10), x.firma_adi || "", x.sehir || "", x.islem_tipi || "", String(x.aciklama || "").replace(/\s+/g, " ").slice(0, 160)].join(" | "));
+  const bugun = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Istanbul" });   // YYYY-MM-DD, Türkiye saatiyle
+  const cevap = await geminiSor(`Bugün: ${bugun}\nServis kayıtları (tarih | firma | şehir | işlem | açıklama), yeniden eskiye:\n${satirlar.join("\n")}\n\nSoru: ${soru}`, env);
+  await rpc(env, "asistan_logla", { p_kim: "asistan:" + sahip, p_detay: soru.slice(0, 200) }).catch(() => {});
+  return url.searchParams.get("format") === "text"
+    ? new Response(cevap, { headers: { "Content-Type": "text/plain; charset=utf-8" } })
+    : new Response(JSON.stringify({ cevap }), { headers: { "Content-Type": "application/json" } });
+}
+
 export default {
   async fetch(istek, env) {
     const cors = corsBasliklari(istek, env);
@@ -53,6 +122,7 @@ export default {
     try {
       if (istek.method !== "GET" && istek.method !== "POST") throw new HttpHata(405, "Yöntem desteklenmiyor");
       const url = new URL(istek.url), yol = url.pathname.replace(/^\/+/, "") + url.search;
+      if (url.pathname === "/asistan") return await asistan(istek, env, url);   // Siri/Android: tarayıcı değil, CORS gerekmez
       if (!YOL_IZIN.test(yol)) throw new HttpHata(404, "Bu yola izin verilmiyor");
       const mail = await kullaniciDogrula(istek, env);
       hizSiniri(mail);

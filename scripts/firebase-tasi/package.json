@@ -1,0 +1,8 @@
+{
+  "name": "enorpa-firebase-tasi",
+  "private": true,
+  "type": "module",
+  "description": "Firestore → Supabase tek seferlik veri taşıma betiği (uygulamanın bağımlılığı değildir)",
+  "scripts": { "tasi": "node tasi.mjs", "kuru": "node tasi.mjs --kuru" },
+  "dependencies": { "@supabase/supabase-js": "2.45.4", "firebase-admin": "^13.0.0" }
+}
