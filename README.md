@@ -1,8 +1,8 @@
 # ENORPA İş Formları
 
 Servis formu oluşturma, firma kartları, bakım takibi, raporlar/harita, ziyaret geçmişi ve Gemini destekli asistan içeren PWA.
-Ön yüz: düz JavaScript (ES modülleri) + Vite. Arka uç: **Supabase** (Auth, Postgres, Storage, Realtime). Yayın: **Cloudflare**
-(Pages + Workers).
+Ön yüz: düz JavaScript (ES modülleri) + Vite. Arka uç: **Supabase** (Auth, Postgres, Storage, Realtime, Edge Functions).
+Yayın: **GitHub Pages**.
 
 ## Hızlı başlangıç
 
@@ -38,7 +38,7 @@ src/
   features/    forms, search, firms, maintenance, reports, admin, ai
   styles/      CSS parçaları
 supabase/migrations/   veritabanı şeması, güvenlik politikaları (RLS) ve fonksiyonlar
-cloudflare/ai-proxy/   AI proxy + sesli asistan (Cloudflare Worker)
+supabase/functions/ai-proxy/   AI proxy + sesli asistan (Edge Function)
 scripts/firebase-tasi/ Firestore → Supabase tek seferlik veri taşıma betiği
 tests/         unit (node:test), smoke (Playwright, sahte veri katmanı), entegrasyon (gerçek Supabase)
 ```
@@ -58,30 +58,25 @@ tests/         unit (node:test), smoke (Playwright, sahte veri katmanı), entegr
 Roller: `yonetici` (her şey), `duzenleyen` (form ekler, firma kartı ve personel düzenler), `goruntuleyen` (yalnızca okur).
 Yetkiler veritabanında RLS ile zorlanır; tarayıcıdaki kontroller yalnızca görünüm içindir.
 
-### 2. Cloudflare Pages (site)
-Depoyu Cloudflare Pages'e bağlayın (Build command: `npm run build`, output: `dist`) **ya da** GitHub'da şu sırları tanımlayın,
-`.github/workflows/yayin.yml` her `main` gönderiminde yayınlar:
-`CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (proje adı: Variables → `CF_PAGES_PROJE`, varsayılan `enorpa-isform`).
+### 2. Site (GitHub Pages)
+Depo → Settings → Pages → Source: **GitHub Actions**. `.github/workflows/yayin.yml` her `main` gönderiminde lint, test ve derleme
+yapıp yayınlar. Supabase'de **Authentication → URL Configuration → Site URL** ve Redirect URLs'e yayın adresinizi
+(`https://KULLANICI.github.io/isform/`) ve yerel geliştirme için `http://localhost:5173/**` ekleyin.
 
-### 3. AI proxy ve sesli asistan (Cloudflare Worker)
-Gemini anahtarı yalnızca sunucuda durur; kullanıcı kimliği Supabase oturumuyla doğrulanır. Aynı Worker Siri/Android
-kestirmesi için `POST /asistan` uç noktasını da sunar.
+### 3. AI proxy ve sesli asistan (Supabase Edge Function)
+Gemini anahtarı yalnızca sunucuda durur; kullanıcı kimliği Supabase oturumuyla doğrulanır. Aynı fonksiyon Siri/Android
+kestirmesi için `POST /asistan` uç noktasını da sunar. Adres: `https://PROJE.supabase.co/functions/v1/ai-proxy` (uygulama bunu
+kendiliğinden kullanır; farklı bir proxy için `VITE_AI_PROXY_URL`).
 
-```bash
-cd cloudflare/ai-proxy
-# wrangler.toml → IZINLI_ORIGINLER: yayın adresiniz (CORS)
-npx wrangler secret put GEMINI_API_KEY
-npx wrangler secret put SHORTCUT_TOKEN              # ali:UZUN_RASTGELE,ayse:UZUN_RASTGELE  (anahtar ≥ 24 karakter; openssl rand -hex 24)
-npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY   # yalnızca /asistan için
-npx wrangler deploy
-```
+Yayın: `supabase functions deploy ai-proxy` (ya da Supabase panelinden). Sırlar: Supabase → **Edge Functions → Secrets**:
+`GEMINI_API_KEY` (Google AI Studio'dan yeni bir anahtar), `IZINLI_ORIGINLER` (örn. `https://KULLANICI.github.io`, CORS),
+isteğe bağlı `SHORTCUT_TOKEN` (Siri için; `ali:UZUN_RASTGELE,ayse:UZUN_RASTGELE`, anahtar ≥ 24 karakter, `openssl rand -hex 24`).
+`SUPABASE_URL`, `SUPABASE_ANON_KEY` ve `SUPABASE_SERVICE_ROLE_KEY` platform tarafından otomatik verilir.
 
-**Siri (iPhone):** Kestirmeler → "Metin Dikte Et" → "URL İçeriğini Al" (yöntem POST, adres `https://WORKER/asistan?format=text`,
-başlık `x-asistan-anahtari: <kişinin anahtarı>`, gövde JSON `{"soru": <dikte edilen>}`) → "Metni Söyle". Bir telefon kaybolursa
-yalnızca o kişinin anahtarını `SHORTCUT_TOKEN`'dan çıkarıp secret'ı yeniden yazın. Anahtar tüm servis kayıtlarını okuyabilir; paylaşmayın.
-
-Çıkan Worker adresini GitHub'da **Variables → `VITE_AI_PROXY_URL`** olarak ekleyin (ya da yerelde `.env`) ve siteyi yeniden yayınlayın.
-Proxy yoksa uygulama eski modda çalışır: anahtar her cihazda elle girilir ve tarayıcıda saklanır (önerilmez).
+**Siri (iPhone):** Kestirmeler → "Metin Dikte Et" → "URL İçeriğini Al" (yöntem POST, adres
+`https://PROJE.supabase.co/functions/v1/ai-proxy/asistan?format=text`, başlık `x-asistan-anahtari: <kişinin anahtarı>`, gövde JSON
+`{"soru": <dikte edilen>}`) → "Metni Söyle". Bir telefon kaybolursa yalnızca o kişinin anahtarını `SHORTCUT_TOKEN`'dan çıkarın.
+Anahtar tüm servis kayıtlarını okuyabilir; paylaşmayın.
 
 ## Yedekleme
 Uygulamadaki **Tam yedek (JSON)** elle alınan bir kopyadır. Düzenli yedek için Supabase panelinde *Database → Backups*

@@ -1,18 +1,21 @@
-/* ENORPA — Cloudflare Worker
+/* ENORPA — Supabase Edge Function (ai-proxy)
    1) AI proxy (/models/...): tarayıcıdan gelen Gemini isteklerini, API anahtarını sunucuda tutarak Google'a iletir.
       Kullanıcı kimliği Supabase oturum belirteci (JWT) ile doğrulanır; yalnızca profiller tablosunda aktif rolü olanlar kullanır.
    2) Sesli asistan (POST /asistan): Siri Kestirmeleri / Android otomasyonları için tek uçlu soru-cevap.
-   Kurulum: README.md → "AI proxy ve sesli asistan (Cloudflare Worker)". */
+   Adres: https://<proje>.supabase.co/functions/v1/ai-proxy/…   Kurulum: README.md → "AI proxy ve sesli asistan". */
 const GEMINI = "https://generativelanguage.googleapis.com/v1beta/";
 const GOVDE_SINIRI = 4 * 1024 * 1024;   // uygulamanın en büyük isteği (fotoğraf okuma) ~1 MB
 /* Yalnızca uygulamanın kullandığı Gemini yöntemlerine izin verilir */
 const YOL_IZIN = /^models(\?pageSize=\d{1,3})?$|^models\/[A-Za-z0-9.-]+:(generateContent|streamGenerateContent|batchEmbedContents|embedContent)(\?alt=sse)?$/;
 
+/* IZINLI_ORIGINLER sırrı verilmezse bu adresler (yayın sitesi ve yerel geliştirme) CORS için izinlidir */
+const VARSAYILAN_ORIGINLER = "https://ferhathaciosmanoglu.github.io,http://localhost:5173";
+
 class HttpHata extends Error { constructor(kod, mesaj) { super(mesaj); this.kod = kod; } }
 
 function corsBasliklari(istek, env) {
   const origin = istek.headers.get("Origin") || "";
-  const izinli = String(env.IZINLI_ORIGINLER || "").split(",").map(s => s.trim()).filter(Boolean);
+  const izinli = String(env.IZINLI_ORIGINLER || VARSAYILAN_ORIGINLER).split(",").map(s => s.trim()).filter(Boolean);
   const h = { "Vary": "Origin" };
   if (origin && izinli.includes(origin)) {
     h["Access-Control-Allow-Origin"] = origin;
@@ -121,8 +124,10 @@ export default {
     if (istek.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
     try {
       if (istek.method !== "GET" && istek.method !== "POST") throw new HttpHata(405, "Yöntem desteklenmiyor");
-      const url = new URL(istek.url), yol = url.pathname.replace(/^\/+/, "") + url.search;
-      if (url.pathname === "/asistan") return await asistan(istek, env, url);   // Siri/Android: tarayıcı değil, CORS gerekmez
+      const url = new URL(istek.url);
+      /* Edge Function adresindeki önek ("/functions/v1/ai-proxy" ya da "/ai-proxy") atılır: geriye "models/…" ya da "asistan" kalır */
+      const alt = url.pathname.replace(/^\/(functions\/v1\/)?ai-proxy(?=\/|$)/, "").replace(/^\/+/, ""), yol = alt + url.search;
+      if (alt === "asistan") return await asistan(istek, env, url);   // Siri/Android: tarayıcı değil, CORS gerekmez
       if (!YOL_IZIN.test(yol)) throw new HttpHata(404, "Bu yola izin verilmiyor");
       const mail = await kullaniciDogrula(istek, env);
       hizSiniri(mail);

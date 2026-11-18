@@ -43,5 +43,5 @@ kilit alıp sayacı atomik artırır, böylece iki kişi aynı anda kayıt girse
 mevcut formlardan hesaplanır; yeni firma kodu `firma_kodlari` ile rezerve edilir.
 
 ## AI
-`ai/gemini.js` (model seçimi, yedekleme, akış) → `ai/transport.js` (Cloudflare Worker proxy'si veya doğrudan) → Gemini.
+`ai/gemini.js` (model seçimi, yedekleme, akış) → `ai/transport.js` (Supabase Edge Function proxy'si) → Gemini.
 `ai/prompts.js` tüm istem ve şemaları tutar; `lib/vektor.js` anlamsal arama vektörlerini paketler.

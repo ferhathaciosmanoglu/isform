@@ -185,7 +185,7 @@ async function sorguCalistir(hedef) {
 export const getDocs = hedef => sorguCalistir(hedef);
 
 export async function getDoc(ref) {
-  if (ref.ad === "ayarlar") return bosSnap(ref.id);   // eski tarayıcı-anahtarı modu yok; AI anahtarı sunucudadır (Cloudflare Worker)
+  if (ref.ad === "ayarlar") return bosSnap(ref.id);   // eski tarayıcı-anahtarı modu yok; AI anahtarı sunucudadır (Edge Function)
   const s = sema(ref.ad);
   const { data, error } = await supabase.from(s.tablo).select("*").eq(s.pk, idCoz(s, ref.id)).maybeSingle();
   if (error) hataFirlat(error);

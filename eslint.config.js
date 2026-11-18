@@ -26,8 +26,8 @@ export default [
     }
   },
   { files: ["demo/vite.config.js", "scripts/**/*.{js,mjs}", "tests/**/*.{js,mjs}", "*.config.js"], languageOptions: { ecmaVersion: 2022, sourceType: "module", globals: globals.node } },
-  // Cloudflare Worker (Web standart API'leri: fetch, Response, URL …)
-  { files: ["cloudflare/**/*.js"], languageOptions: { ecmaVersion: 2022, sourceType: "module", globals: { ...globals.serviceworker, console: "readonly" } } },
+  // Edge Function işleyicisi (Web standart API'leri: fetch, Response, URL …)
+  { files: ["supabase/functions/**/*.js"], languageOptions: { ecmaVersion: 2022, sourceType: "module", globals: { ...globals.serviceworker, console: "readonly" } } },
   // Playwright'ın tarayıcıda çalıştırdığı kod parçaları ve sahte veri modülleri
   { files: ["tests/smoke/**/*.{js,mjs}"], languageOptions: { globals: { ...globals.node, ...globals.browser } } },
   { files: ["demo/**/*.js"], ignores: ["demo/vite.config.js"], languageOptions: { ecmaVersion: 2022, sourceType: "module", globals: globals.browser } },

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import worker from "../../cloudflare/ai-proxy/index.js";
+import worker from "../../supabase/functions/ai-proxy/handler.js";
 
 const env = { SUPABASE_URL: "https://x.supabase.co", SUPABASE_ANON_KEY: "anon", SUPABASE_SERVICE_ROLE_KEY: "servis", GEMINI_API_KEY: "gk",
   SHORTCUT_TOKEN: "ali:" + "a".repeat(24) + ",b".repeat(1) + "x".repeat(0), IZINLI_ORIGINLER: "https://site.pages.dev" };
@@ -73,4 +73,24 @@ test("asistan: doğru anahtarla cevap döner, kayıtlar bağlama girer, işlem g
 test("asistan: boş soru 400", async () => {
   sahteAg();
   assert.equal((await worker.fetch(ist("/asistan", { baslik: { "x-asistan-anahtari": "a".repeat(24) }, govde: "{}" }), env)).status, 400);
+});
+
+test("Edge Function adres öneki (/functions/v1/ai-proxy ve /ai-proxy) atılır", async () => {
+  const c = sahteAg();
+  for (const on of ["/functions/v1/ai-proxy", "/ai-proxy"]) {
+    const r = await worker.fetch(ist(on + "/models/gemini-3.1-flash-lite:generateContent", { baslik: { Authorization: "Bearer jwt" }, govde: "{}" }), env);
+    assert.equal(r.status, 200);
+  }
+  assert.ok(c.some(x => x.url === "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent"));
+  const a = await worker.fetch(ist("/functions/v1/ai-proxy/asistan?format=text", { baslik: { "x-asistan-anahtari": "a".repeat(24) }, govde: '{"soru":"x"}' }), env);
+  assert.equal(a.status, 200);
+});
+
+test("IZINLI_ORIGINLER verilmezse yayın sitesi varsayılan olarak izinlidir", async () => {
+  sahteAg();
+  const e = { ...env }; delete e.IZINLI_ORIGINLER;
+  const r = await worker.fetch(ist("/models", { yontem: "OPTIONS", baslik: { Origin: "https://ferhathaciosmanoglu.github.io" } }), e);
+  assert.equal(r.headers.get("Access-Control-Allow-Origin"), "https://ferhathaciosmanoglu.github.io");
+  const k = await worker.fetch(ist("/models", { yontem: "OPTIONS", baslik: { Origin: "https://kotu.example" } }), e);
+  assert.equal(k.headers.get("Access-Control-Allow-Origin"), null);
 });

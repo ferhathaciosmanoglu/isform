@@ -1,4 +1,4 @@
--- Sesli asistan (Siri/Android kestirmesi) için: yalnızca service_role (Cloudflare Worker) çağırabilir; tarayıcıdaki kullanıcılar çağıramaz.
+-- Sesli asistan (Siri/Android kestirmesi) için: yalnızca service_role (Edge Function) çağırabilir; tarayıcıdaki kullanıcılar çağıramaz.
 create or replace function public.asistan_son_kayitlar(p_adet integer default 200)
 returns table (tarih timestamptz, firma_adi text, sehir text, islem_tipi text, aciklama text)
 language sql stable security definer set search_path = '' as $$
