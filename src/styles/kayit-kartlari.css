@@ -65,3 +65,7 @@
 .aciklama-devam{display:block;margin:4px 0 0;padding:6px 2px;background:none;border:0;color:var(--primary);font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
 .aciklama-devam:hover{text-decoration:underline}
 .aciklama-devam:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:4px}
+
+/* Giden personel rozeti: uzun isim listeleri satırı taşırmasın */
+.badge-personel { max-width: 100%; white-space: normal; text-align: left; }
+.badge-personel.bos { opacity: .6; font-style: italic; }

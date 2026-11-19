@@ -6,9 +6,9 @@ import { logYaz, yoneticiMi } from "../../core/session.js";
 import { $ } from "../../lib/dom.js";
 import { htmlGuvenli } from "../../lib/text.js";
 import { ikon } from "../../lib/ikon.js";
-import { ziyaretFotodanOku } from "./ziyaret-oku.js";
+import { bilinenPersonel, ziyaretFotodanOku } from "./ziyaret-oku.js";
 import { raporKayitYama, raporVerisi } from "../reports/rapor-veri.js";
-import { aiZiyaret, formdanZiyaret, ziyaretOzetle, ziyaretVar } from "../../lib/ziyaret.js";
+import { aiZiyaret, formdanZiyaret, okunamadi, ziyaretOzetle, ziyaretVar } from "../../lib/ziyaret.js";
 
 /* ===== ZİYARET GEÇMİŞİ: "Bu firmaya ENORPA'dan kim, ne zaman, kaç kez gitti?" =====
    1) Firma kartında özet (herkes görür): kişi başına ziyaret sayısı + tarih listesi.
@@ -49,9 +49,9 @@ const fotoKaynagi = async v => {
   return s.exists() ? String(s.data().base64 || "") : "";
 };
 
-async function fotodanOku(v) {
+async function fotodanOku(v, liste) {
   const src = await fotoKaynagi(v);
-  return src.startsWith("data:") ? ziyaretFotodanOku(src) : null;   // fotoğraf yok / bozuk: işaretleme, sonra tekrar denenebilsin
+  return src.startsWith("data:") ? ziyaretFotodanOku(src, { liste }) : null;   // fotoğraf yok / bozuk: işaretleme, sonra tekrar denenebilsin
 }
 
 let calisiyor = false, durdur = false;
@@ -73,14 +73,15 @@ async function topluOku(btn) {
       await b.commit(); await Promise.all(grup.map(x => raporKayitYama(x.id, { ziyaret: formdanZiyaret(x.v) }))); yazilan += grup.length;
     }
     let okunan = 0, okunamayan = 0, atlanan = 0;
+    const liste = bilinenPersonel();
     for (let i = 0; i < fotodan.length && !durdur; i++) {   // 2) fotoğraftan: tek tek
       const { id, v } = fotodan[i];
       btn.textContent = `⏹ Okunuyor ${i + 1}/${fotodan.length} (durdurmak için dokunun)`;
       let c;
-      try { c = await fotodanOku(v); }
+      try { c = await fotodanOku(v, liste); }
       catch (e) { console.error(e); showToast("AI: " + e.message + " — bu ana kadarki sonuçlar kaydedildi, tekrar çalıştırınca devam eder", "error"); break; }
       if (!c) { atlanan++; continue; }
-      const z = c.okundu === false ? { personel: [], tarih: "", kaynak: "ai", surum: 1 } : aiZiyaret(c, String(v.tarih || "").slice(0, 10));
+      const z = c.okundu === false ? okunamadi() : aiZiyaret(c, String(v.tarih || "").slice(0, 10), liste);
       if (c.okundu === false || !z.personel.length) okunamayan++; else okunan++;
       await updateDoc(doc(db, "formlar", id), { ziyaret: z }); await raporKayitYama(id, { ziyaret: z });
       await bekle(4500);   // dakikalık istek sınırlarına takılmamak için

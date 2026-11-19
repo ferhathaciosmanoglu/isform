@@ -1,9 +1,10 @@
 import { metniNormalizeEt } from "./text.js";
+import { levenshtein } from "./levenshtein.js";
 
 /* ===== ZİYARET: bir servis formundan "Enorpa'dan kim, ne zaman gitti" bilgisi =====
    formlar belgesinde `ziyaret: { personel: [ad], tarih: "YYYY-MM-DD", kaynak: "form" | "ai", surum }` olarak saklanır.
    Uygulamada oluşturulan formlarda bilgi formVerisi'nden (yapay zekâsız), taranmış kâğıt formlarda fotoğraftan okunur. */
-export const ZIYARET_SURUM = 1;
+export const ZIYARET_SURUM = 2;   // 2: isimler personel listesiyle eşleştirilir, tarih formdan alınır (1 olanlar yeniden okunur)
 
 export const adTemizle = t => String(t || "").replace(/\s+/g, " ").trim().toLocaleLowerCase("tr-TR")
   .split(" ").map(k => k.charAt(0).toLocaleUpperCase("tr-TR") + k.slice(1)).join(" ");
@@ -31,12 +32,43 @@ export function formdanZiyaret(v) {
 }
 
 /* Yapay zekâ çıktısını (serbest) kaydedilebilir biçime çevirir */
-export function aiZiyaret(cikti, yedekTarih = "") {
-  const personel = adlariTemizle(cikti && cikti.personel);
+/* ---- İsim eşleştirme: el yazısından bozuk okunan adı ("Mehmet Koya", "M. Kaya", "Kazım Balu") personel listesindeki
+   doğru yazıma çevirir. Emin olunamazsa okunduğu gibi bırakır (listede olmayan eski personel olabilir). */
+const sozcuk = t => metniNormalizeEt(t).replace(/[.]/g, ". ").replace(/[^a-z. ]/g, " ").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+export function adiEslestir(ad, liste) {
+  const temiz = adTemizle(ad), adaylar = (liste || []).map(a => ({ ad: adTemizle(a), s: sozcuk(a) })).filter(a => a.s.length >= 2);
+  const s = sozcuk(temiz); if (!s.length || !adaylar.length) return temiz;
+  const tam = s.join(" ");
+  const tek = l => (l.length === 1 ? l[0].ad : null);
+  // 1) aynı ya da çok yakın tam ad
+  let enIyi = null, enAz = Infinity;
+  for (const a of adaylar) { const d = levenshtein(a.s.join(" "), tam); if (d < enAz) { enAz = d; enIyi = a; } }
+  if (enIyi && enAz <= Math.max(1, Math.floor(tam.length / 6))) return enIyi.ad;
+  const soyad = s[s.length - 1].replace(/\.$/, ""), ilk = s[0].replace(/\.$/, "");
+  const soyadYakin = a => { const as = a.s[a.s.length - 1]; return levenshtein(as, soyad) <= Math.max(1, Math.floor(as.length / 3)); };
+  // 2) tek kelime: "Yasin", "Bircan" (adı ya da soyadı tek kişiye uyuyorsa)
+  if (s.length === 1) return tek(adaylar.filter(a => a.s[0] === ilk)) || tek(adaylar.filter(soyadYakin)) || temiz;
+  // 3) baş harfli: "M. Kaya", "B.özdemir"
+  if (ilk.length === 1) return tek(adaylar.filter(a => a.s[0][0] === ilk && soyadYakin(a))) || temiz;
+  // 4) adı aynı, soyadı bozuk okunmuş: "Kazım Balu", "Onur Anstelin" (soyadının ilk harfi tutmalı)
+  const ayniAd = adaylar.filter(a => a.s[0] === ilk || levenshtein(a.s[0], ilk) <= 1);
+  const harfiTutan = ayniAd.filter(a => a.s[a.s.length - 1][0] === soyad[0]);
+  const yakin = harfiTutan.filter(a => levenshtein(a.s[a.s.length - 1], soyad) <= Math.ceil(a.s[a.s.length - 1].length * 0.6));
+  if (yakin.length === 1) return yakin[0].ad;
+  // 5) soyadı tutuyor, adın baş harfi aynı: "Mehmet Kayış" değil ama "Mehmed Kaya" gibi
+  return tek(adaylar.filter(a => a.s[0][0] === ilk[0] && soyadYakin(a))) || temiz;
+}
+export const adlariEslestir = (adlar, liste) => adlariTemizle((adlar || []).map(a => adiEslestir(a, liste)));
+
+/* Yapay zekâ çıktısını (serbest) kaydedilebilir biçime çevirir. formTarih: kayıttaki tarih (kâğıttan okunan tarih
+   çoğu zaman yanlış okunduğu için kayıttaki tarih önceliklidir; yoksa okunan tarih kullanılır). liste: bilinen personel adları */
+export function aiZiyaret(cikti, formTarih = "", liste = []) {
+  const personel = adlariEslestir(cikti && cikti.personel, liste);
   let tarih = String((cikti && cikti.tarih) || "").trim();
   if (!gunMu(tarih)) tarih = "";
-  return { personel, tarih: tarih || (gunMu(yedekTarih) ? yedekTarih : ""), kaynak: "ai", surum: ZIYARET_SURUM };
+  return { personel, tarih: gunMu(formTarih) ? formTarih : tarih, kaynak: "ai", surum: ZIYARET_SURUM };
 }
+export const okunamadi = () => ({ personel: [], tarih: "", kaynak: "ai", surum: ZIYARET_SURUM });
 
 /* Bu kayıt için ziyaret bilgisi çıkarılmış mı? (okunamadı da "çıkarılmış" sayılır; tekrar tekrar AI'a gitmesin) */
 export const ziyaretVar = v => !!(v && v.ziyaret && v.ziyaret.surum >= ZIYARET_SURUM);
@@ -46,7 +78,7 @@ export const ziyaretVar = v => !!(v && v.ziyaret && v.ziyaret.surum >= ZIYARET_S
 export function ziyaretOzetle(formlar) {
   const kisi = new Map(), ziyaretler = []; let okunmamis = 0;
   for (const v of formlar || []) {
-    const z = ziyaretVar(v) ? v.ziyaret : (formdanZiyaret(v) || null);
+    const z = v.ziyaret || formdanZiyaret(v) || null;
     const tarih = (z && z.tarih) || String(v.tarih || "").slice(0, 10);
     const personel = z ? adlariTemizle(z.personel) : [];
     if (!personel.length) okunmamis++;
@@ -61,4 +93,4 @@ export function ziyaretOzetle(formlar) {
 }
 
 /* Kaydın personel listesi: çıkarılmış ziyaret bilgisi, yoksa uygulamada oluşturulmuş formdan; yoksa [] */
-export const ziyaretPersonel = v => adlariTemizle((ziyaretVar(v) ? v.ziyaret : formdanZiyaret(v) || {}).personel);
+export const ziyaretPersonel = v => adlariTemizle((v.ziyaret || formdanZiyaret(v) || {}).personel);
