@@ -47,13 +47,14 @@ export async function aiHataYap(r, ad = "Gemini") {
   let j = null; try { j = await r.json(); } catch (e) { }
   const mesaj = j?.error?.message || "";
   let bekle = 0;
+  if (r.status >= 500) bekle = 20;   // "model yoğun" (503) gibi geçici hatalar: biraz bekleyip yeniden denenir
   if (r.status === 429) {
     const ri = (j?.error?.details || []).find(d => /RetryInfo/.test(d["@type"] || ""));
     bekle = parseFloat(ri?.retryDelay) || parseFloat((mesaj.match(/retry in ([\d.]+)s/i) || [])[1]) || 60;
   }
   const e = new AiHata(r.status === 429
     ? `Ücretsiz kota doldu (dakikalık veya günlük). ${bekle <= 180 ? "Kısa süre sonra" : "Birkaç dakika sonra"} tekrar deneyin; sürerse AI Studio > Rate limit sayfasına bakın`
-    : `${ad} hatası ${r.status}: ${mesaj.slice(0, 160)}`, bekle);
+    : r.status >= 500 ? `Google şu an yoğun (${r.status}), biraz sonra tekrar deneyin` : `${ad} hatası ${r.status}: ${mesaj.slice(0, 160)}`, bekle);
   e.durum = r.status; e.ayrinti = mesaj; return e;
 }
 
@@ -74,7 +75,7 @@ export async function gemini(parts, { json = false, sistem = "", sema = null } =
     r = await ist(md);
     if (r.status === 400 && semaVar) { semaVar = false; r = await ist(md); }   // şema reddedilirse şemasız (eski davranış) dene
     if (r.ok) { if (md !== aiModel) { aiModel = md; localStorage.setItem("gemini_model2", md); } break; }
-    if (r.status !== 429 && r.status !== 404) break;
+    if (r.status !== 429 && r.status !== 404 && r.status < 500) break;   // 5xx: Google geçici olarak yoğun
   }
   if (r.status === 404) { await aiModelBul(k); r = await ist(aiModel); }
   if (!r.ok) {
@@ -98,7 +99,7 @@ export async function geminiAkis(parts, { sistem = "", onMetin } = {}) {
   for (const md of aiModelSirasi()) {
     r = await aiFetch(`models/${md}:streamGenerateContent?alt=sse`, { method: "POST", body: JSON.stringify(b), anahtar: k });
     if (r.ok) { if (md !== aiModel) { aiModel = md; localStorage.setItem("gemini_model2", md); } break; }
-    if (r.status !== 429 && r.status !== 404) break;
+    if (r.status !== 429 && r.status !== 404 && r.status < 500) break;   // 5xx: Google geçici olarak yoğun
   }
   if (!r.ok || !r.body) return gemini(parts, { sistem });   // hata mesajlarını / model keşfini normal yol üretir
   const okuyucu = r.body.getReader(), cozucu = new TextDecoder(); let tampon = "", tam = "";

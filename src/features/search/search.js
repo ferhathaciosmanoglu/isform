@@ -10,6 +10,7 @@ import { db } from "../../veri/init.js";
 import { koddanNo } from "../../lib/firma-kodu.js";
 import { tarihKarsilastir, tarihiInputaCevir } from "../../lib/dates.js";
 import { duzenleyebilirMi, yoneticiMi } from "../../core/session.js";
+import { ziyaretPersonel } from "../../lib/ziyaret.js";
 
 export let SIRA_YONU = 1;
 
@@ -133,7 +134,7 @@ aramaKutusu.addEventListener("keydown", e => {
   }
 });
 
-function kartHTMLOlustur(docId, fotoParam, firma, sehir, islem, ekleyen, tarih, isAdmin, aciklama, konum, formKodu, tarihHam, ek = "") {
+function kartHTMLOlustur(docId, fotoParam, firma, sehir, islem, personelRozeti, tarih, isAdmin, aciklama, konum, formKodu, tarihHam, ek = "") {
   const codeDisplay = formKodu || "FRM-" + docId.substring(0, 5).toUpperCase();
   let admin = "";
   if (isAdmin) admin = `
@@ -163,7 +164,7 @@ function kartHTMLOlustur(docId, fotoParam, firma, sehir, islem, ekleyen, tarih, 
       <div class="detay-satiri">
         <span class="badge badge-tip">${ikon("wrench", 13)} ${htmlGuvenli(islem)}</span>
         ${sehirHTML}
-        <span class="badge">${ikon("user", 13)} ${htmlGuvenli(ekleyen)}</span>
+        ${personelRozeti}
         ${ek}
       </div>
       ${aciklamaHTML}
@@ -179,13 +180,20 @@ export function bakimRozeti(iso, blok) {
   return `<span class="bakim-rozet ${sinif}">${yazi}</span>`;
 }
 
+/* Forma giden ENORPA personeli (formu kimin eklediği ekranda gösterilmez; kayıtta ve işlem geçmişinde durur) */
+function personelRozetiHTML(v) {
+  const adlar = ziyaretPersonel(v);
+  if (adlar.length) return `<span class="badge badge-personel" title="Giden personel">${ikon("user", 13)} ${htmlGuvenli(adlar.join(", "))}</span>`;
+  return `<span class="badge badge-personel bos" title="Giden personel">${ikon("user", 13)} ${v.ziyaret ? "Personel okunamadı" : "Personel okunmadı"}</span>`;
+}
+
 export function kartDokumuHTML(docId, v, tarihSecenek, isAdmin) {
   let tarih = "Tarih yok";
   if (v.tarih && !isNaN(new Date(v.tarih).getTime())) tarih = new Date(v.tarih).toLocaleDateString("tr-TR", tarihSecenek);
   (window.formCache = window.formCache || {})[docId] = v;
   const ek = (v.sonrakiBakim ? bakimRozeti(v.sonrakiBakim, true) : "") +
     (duzenleyebilirMi() ? `<button type="button" class="btn-firma btn-kopyala" title="Bu kaydı yeni form olarak kopyala" aria-label="Kopyala" onclick="event.stopPropagation();kaydiKopyala('${docId}')">${ikon("copy", 13)}<span class="bk-yazi">Kopyala</span></button>` : "");
-  return kartHTMLOlustur(docId, v.fotoId ? `'${v.fotoId}'` : "null", v.firmaAdi || "İSİMSİZ FİRMA", v.sehir || "belirsiz", v.islemTipi || "Belirtilmemiş", v.ekleyen ? v.ekleyen.split("@")[0] : "Bilinmiyor", tarih, isAdmin, v.aciklama, v.konum, v.formKodu, v.tarih, ek);
+  return kartHTMLOlustur(docId, v.fotoId ? `'${v.fotoId}'` : "null", v.firmaAdi || "İSİMSİZ FİRMA", v.sehir || "belirsiz", v.islemTipi || "Belirtilmemiş", personelRozetiHTML(v), tarih, isAdmin, v.aciklama, v.konum, v.formKodu, v.tarih, ek);
 }
 
 (function () {

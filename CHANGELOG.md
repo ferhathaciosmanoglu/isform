@@ -6,6 +6,9 @@
 - AI proxy ve sesli asistan Supabase Edge Function oldu (`supabase/functions/ai-proxy`); yayın GitHub Pages'te kalıyor.
 - Çevrimdışı kayıt kaldırıldı (giriş için zaten internet gerekiyordu). "Eski kayıtları optimize et" aracı ve Firebase dosyaları (kurallar, fonksiyonlar, kurulum iş akışı) kaldırıldı.
 - Ziyaret geçmişi: firma kartında ENORPA'dan kim, ne zaman, kaç kez gitti (AI ile form okuma).
+- Kayıt kartlarında formu ekleyen kişi yerine forma giden personel gösteriliyor (ekleyen kayıtta ve işlem geçmişinde kalıyor).
+- Form okurken isimler personel listesiyle eşleştiriliyor ("Mehmet Koya", "M. Kaya" → Mehmet Kaya); ziyaret tarihi kayıttaki tarihten alınıyor. Önceden okunanlar bir sonraki toplu okumada yeniden okunur.
+- Google "yoğun" (503) hatası verdiğinde toplu okuma durmuyor; bekleyip yeniden deniyor, gerekirse yedek modele geçiyor.
 
 ## 2.1.0
 **Düzeltmeler**
