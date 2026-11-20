@@ -7,6 +7,7 @@ import { csvIndir, htmlGuvenli, metniNormalizeEt } from "../../lib/text.js";
 import { formSatirlari } from "../search/search.js";
 import { tarihiInputaCevir } from "../../lib/dates.js";
 import { sehirGoster } from "../../lib/sehirler.js";
+import { personelRaporCiz } from "./rapor-personel.js";
 
 let sonMobil = window.innerWidth < 1024;
 
@@ -23,7 +24,7 @@ $("btnRaporOlustur").addEventListener("click", async () => {
   try {
     const snap = await raporVerisi();
     state.tumFormlarGlobal = [];
-    const sehirler = {}, islemler = {}, kisiler = {}, firmaSet = new Set();
+    const sehirler = {}, islemler = {}, firmaSet = new Set();
     state.raporSehirVeri = {};
     snap.forEach(d => {
       const x = d.data(); state.tumFormlarGlobal.push(x);
@@ -31,7 +32,6 @@ $("btnRaporOlustur").addEventListener("click", async () => {
       firmaSet.add(x.aramaFirma || metniNormalizeEt(x.firmaAdi));
       const s = sehirGoster(x.sehir || "Belirsiz").toLocaleUpperCase("tr-TR"); sehirler[s] = (sehirler[s] || 0) + 1;
       const i = (x.islemTipi || "Belirtilmemiş").toLocaleUpperCase("tr-TR"); islemler[i] = (islemler[i] || 0) + 1;
-      const p = x.ekleyen ? x.ekleyen.split("@")[0] : "Bilinmiyor"; kisiler[p] = (kisiler[p] || 0) + 1;
     });
     $("statToplam").innerText = state.tumFormlarGlobal.length;
     const enCok = Object.entries(sehirler).sort((a, b) => b[1] - a[1])[0];
@@ -39,7 +39,7 @@ $("btnRaporOlustur").addEventListener("click", async () => {
     $("statSehir").innerHTML = enCok ? `${enCok[1]}<small class="stat-il">${htmlGuvenli(sehirGoster(enCok[0]))}</small>` : "-";
     const liste = (o, ikon) => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([k, n]) => `<div class="rapor-item"><span>${ikon}${htmlGuvenli(k)}</span><strong>${n} kayıt</strong></div>`).join("");
     $("listeIslem").innerHTML = liste(islemler, "");
-    $("listePersonel").innerHTML = liste(kisiler, "👤 ");
+    personelRaporCiz(state.tumFormlarGlobal);   // forma giden personel (formu ekleyen kişi değil)
     $("listeSehir").innerHTML = liste(sehirler, "📍 ");
     $("statFirma").textContent = firmaSet.size;
     $("dashboardAlani").style.display = "block";

@@ -66,12 +66,35 @@ export function aiZiyaret(cikti, formTarih = "", liste = []) {
   const personel = adlariEslestir(cikti && cikti.personel, liste);
   let tarih = String((cikti && cikti.tarih) || "").trim();
   if (!gunMu(tarih)) tarih = "";
-  return { personel, tarih: gunMu(formTarih) ? formTarih : tarih, kaynak: "ai", surum: ZIYARET_SURUM };
+  const ham = adlariTemizle(cikti && cikti.personel);   // okunduğu gibi: eşleştirme kuralı değişirse AI'a gitmeden yeniden eşlenebilir
+  return { personel, ...(ham.length ? { ham } : {}), tarih: gunMu(formTarih) ? formTarih : tarih, kaynak: "ai", surum: ZIYARET_SURUM };
 }
 export const okunamadi = () => ({ personel: [], tarih: "", kaynak: "ai", surum: ZIYARET_SURUM });
 
-/* Bu kayıt için ziyaret bilgisi çıkarılmış mı? (okunamadı da "çıkarılmış" sayılır; tekrar tekrar AI'a gitmesin) */
-export const ziyaretVar = v => !!(v && v.ziyaret && v.ziyaret.surum >= ZIYARET_SURUM);
+/* Bu kayıt için ziyaret bilgisi çıkarılmış mı? (okunamadı da "çıkarılmış" sayılır; tekrar tekrar AI'a gitmesin).
+   Elle düzeltilen/onaylanan kayıt sürüm artsa da yeniden okunmaz (insan kararı AI'ın üstündedir). */
+export const ziyaretVar = v => !!(v && v.ziyaret && (v.ziyaret.kaynak === "elle" || v.ziyaret.surum >= ZIYARET_SURUM));
+
+/* Yöneticinin düzelttiği / onayladığı ziyaret bilgisi. onceki: kayıttaki ziyaret (ham okumayı korumak için) */
+export function elleZiyaret(personel, tarih, onceki = null, kim = "", zaman = new Date().toISOString()) {
+  const z = { personel: adlariTemizle(personel), tarih: gunMu(tarih) ? tarih : "", kaynak: "elle", surum: ZIYARET_SURUM, onaylayan: kim, onayTarihi: zaman };
+  const ham = onceki && Array.isArray(onceki.ham) ? onceki.ham : onceki && onceki.kaynak === "ai" ? adlariTemizle(onceki.personel) : [];
+  if (ham.length) z.ham = ham;
+  return z;
+}
+
+/* Gözden geçirme ekranı için kaydın durumu. listeNorm: personel listesindeki adların metniNormalizeEt hali (Set)
+   "okunmadi" | "bos" (okundu ama personel yok) | "listeDisi" (listede olmayan isim var) | "ai" (listeyle uyumlu AI okuması) | "elle" | "form" */
+export function incelemeDurumu(v, listeNorm) {
+  const z = v && v.ziyaret;
+  if (!z) return formdanZiyaret(v) ? "form" : "okunmadi";
+  if (z.kaynak === "elle") return "elle";
+  if (z.kaynak === "form") return "form";
+  const p = adlariTemizle(z.personel);
+  if (!p.length) return "bos";
+  if (listeNorm && listeNorm.size && p.some(a => !listeNorm.has(metniNormalizeEt(a)))) return "listeDisi";
+  return "ai";
+}
 
 /* Firma için özet. formlar: aynı firmanın formlar belgeleri (data() nesneleri). Her form bir ziyaret sayılır.
    Dönen: { toplam, okunmamis, kisiler: [{ ad, sayi }] (çoktan aza), ziyaretler: [{ tarih, personel, formKodu }] (yeniden eskiye) } */
@@ -94,3 +117,35 @@ export function ziyaretOzetle(formlar) {
 
 /* Kaydın personel listesi: çıkarılmış ziyaret bilgisi, yoksa uygulamada oluşturulmuş formdan; yoksa [] */
 export const ziyaretPersonel = v => adlariTemizle((v.ziyaret || formdanZiyaret(v) || {}).personel);
+
+/* ---- Personel raporu: her kişi kaç forma, kaç farklı firmaya gitti, en son ne zaman ----
+   formlar: tüm formların data() nesneleri. bas/bit: "YYYY-MM-DD" (dahil), boşsa sınır yok.
+   Dönen: { kisiler: [{ ad, sayi, firmaSayisi, son, firmalar: [{ ad, sayi }], tipler: [{ ad, sayi }], ekip: [{ ad, sayi }] }],
+            formSayisi (dönemdeki), okunmamis (dönemde personeli olmayan form) } */
+export function personelOzetle(formlar, { bas = "", bit = "" } = {}) {
+  const kisi = new Map(); let formSayisi = 0, okunmamis = 0;
+  const say = (m, k, ad) => { const e = m.get(k) || { ad, sayi: 0 }; e.sayi++; m.set(k, e); };
+  const sirali = m => [...m.values()].sort((a, b) => b.sayi - a.sayi || a.ad.localeCompare(b.ad, "tr-TR"));
+  for (const v of formlar || []) {
+    const z = v.ziyaret || formdanZiyaret(v) || null;
+    const tarih = (z && z.tarih) || String(v.tarih || "").slice(0, 10);
+    if ((bas && tarih < bas) || (bit && tarih > bit)) continue;
+    formSayisi++;
+    const personel = z ? adlariTemizle(z.personel) : [];
+    if (!personel.length) { okunmamis++; continue; }
+    const firmaAd = String(v.firmaAdi || v.aramaFirma || "Bilinmeyen firma").trim(), firmaK = v.aramaFirma || metniNormalizeEt(firmaAd);
+    const tip = String(v.islemTipi || "").trim() || "Belirtilmemiş";
+    personel.forEach(ad => {
+      const k = metniNormalizeEt(ad);
+      const e = kisi.get(k) || { ad, sayi: 0, son: "", firmalar: new Map(), tipler: new Map(), ekip: new Map() };
+      e.sayi++; if (tarih > e.son) e.son = tarih;
+      say(e.firmalar, firmaK, firmaAd); say(e.tipler, tip, tip);
+      personel.forEach(b => { if (b !== ad) say(e.ekip, metniNormalizeEt(b), b); });
+      kisi.set(k, e);
+    });
+  }
+  const kisiler = [...kisi.values()].map(e => ({ ad: e.ad, sayi: e.sayi, firmaSayisi: e.firmalar.size, son: e.son,
+    firmalar: sirali(e.firmalar), tipler: sirali(e.tipler), ekip: sirali(e.ekip) }))
+    .sort((a, b) => b.sayi - a.sayi || a.ad.localeCompare(b.ad, "tr-TR"));
+  return { kisiler, formSayisi, okunmamis };
+}

@@ -1,0 +1,56 @@
+/* ===== Ziyaret okumalarını gözden geçir (yönetici penceresi) ===== */
+.zi-modal{display:none;align-items:flex-start;overflow-y:auto}
+.zi-kart{max-width:560px;max-height:none;margin:auto 0;padding:18px 16px 20px}
+.zi-ust{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.zi-ust .fk-x{position:static;flex:none;background:var(--surface-2);color:var(--text-main);display:inline-flex;align-items:center;justify-content:center}
+.zi-filtreler{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none}
+.zi-filtreler::-webkit-scrollbar{display:none}
+.zi-filtre{flex:none;appearance:none;border:1.5px solid var(--border);background:var(--surface-2);color:var(--text-main);border-radius:999px;padding:7px 12px;font:600 .8rem var(--font);cursor:pointer;white-space:nowrap}
+.zi-filtre b{margin-left:4px;color:var(--text-muted)}
+.zi-filtre.secili{background:var(--primary);border-color:var(--primary);color:#fff}
+.zi-filtre.secili b{color:#fff}
+.zi-gezinti{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;font-size:.9rem}
+.zi-gezinti .zi-ok{width:44px;min-width:44px;height:40px;padding:0;margin:0;font-size:1.4rem;line-height:1}
+.zi-firma{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.zi-firma b{font-size:1.02rem}
+.zi-firma small{color:var(--text-muted);font-size:.8rem}
+.zi-foto{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);min-height:160px;max-height:46vh;overflow:auto;display:flex;align-items:center;justify-content:center}
+.zi-foto img{display:block;max-width:100%;max-height:46vh;object-fit:contain;transition:transform .2s ease}
+.zi-foto.buyuk{max-height:none;display:block}
+.zi-foto.buyuk img{max-width:none;max-height:none;width:180%}
+.zi-foto-yaz{color:var(--text-muted);font-size:.85rem;padding:30px 10px}
+.zi-foto-arac{display:flex;gap:8px;margin:8px 0 4px}
+.zi-foto-arac .btn{margin:0;padding:8px 10px;font-size:.82rem}
+.zi-not{font-size:.8rem;color:var(--text-muted);margin:6px 0}
+.zi-cipler{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.zi-cip{display:inline-flex;align-items:center;gap:4px;padding:5px 6px 5px 12px;border-radius:999px;background:var(--primary-soft);font-size:.85rem;font-weight:600}
+.zi-cip.disi{background:rgba(229,72,77,.12);color:var(--danger)}
+.zi-cip button{appearance:none;border:0;background:none;color:inherit;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;padding:0}
+.zi-cip button:hover{background:rgba(0,0,0,.08)}
+.zi-alt{display:flex;gap:10px;margin-top:14px}
+.zi-alt .btn{margin:0}
+.zi-alt .btn-primary{flex:2}
+.zi-alt .btn-ikincil{flex:1}
+.zi-bos{text-align:center;color:var(--text-muted);padding:34px 10px}
+.zi-bos svg{color:var(--success);margin-bottom:8px}
+
+/* ===== Rapor: giden personel ===== */
+.pr-ust{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.pr-ust select{max-width:160px}
+.pr-ozet{font-size:.78rem;color:var(--text-muted);margin-bottom:8px}
+.rapor-listesi.pr-liste{max-height:480px;padding:4px 12px}
+.pr-kisi{border-bottom:1px solid var(--border)}
+.pr-kisi:last-child{border-bottom:none}
+.pr-kisi summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:11px 0;align-items:center}
+.pr-kisi summary::-webkit-details-marker{display:none}
+.pr-ad{font-weight:700;font-size:.92rem}
+.pr-sayi{font-size:.82rem;color:var(--text-muted);text-align:right;white-space:nowrap}
+.pr-sayi b{color:var(--text-main);font-size:.95rem}
+.pr-cubuk{grid-column:1 / -1;height:6px;border-radius:999px;background:var(--border);overflow:hidden}
+.pr-cubuk i{display:block;height:100%;background:var(--primary);border-radius:999px}
+.pr-son{grid-column:1 / -1;color:var(--text-muted);font-size:.75rem}
+.pr-detay{padding:2px 0 12px}
+.pr-alt{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin:10px 0 2px}
+.pr-detay .rapor-item{padding:7px 0;font-size:.85rem}
+.pr-cipler{margin-top:4px}
+.pr-cipler span{padding:4px 10px;border-radius:999px;background:var(--primary-soft);font-size:.8rem}

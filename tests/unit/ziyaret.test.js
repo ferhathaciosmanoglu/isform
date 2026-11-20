@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { adiEslestir, adlariEslestir, adlariTemizle, aiZiyaret, formdanZiyaret, ziyaretOzetle, ziyaretVar, ZIYARET_SURUM } from "../../src/lib/ziyaret.js";
+import { adiEslestir, adlariEslestir, adlariTemizle, aiZiyaret, elleZiyaret, formdanZiyaret, incelemeDurumu, personelOzetle, ziyaretOzetle, ziyaretVar, ZIYARET_SURUM } from "../../src/lib/ziyaret.js";
 
 test("adlariTemizle: büyük/küçük harf ve yinelenenleri düzeltir", () => {
   assert.deepEqual(adlariTemizle(["ali  YILMAZ", "Ali Yılmaz", "", " ", "x", "AYŞE kaya"]), ["Ali Yılmaz", "Ayşe Kaya"]);
@@ -59,4 +59,52 @@ test("ziyaretOzetle: kişi başına sayı, tarih sırası, okunmamış", () => {
   assert.equal(o.okunmamis, 1);
   assert.deepEqual(o.kisiler, [{ ad: "Ali Yılmaz", sayi: 2 }, { ad: "Ayşe Kaya", sayi: 1 }, { ad: "Veli Can", sayi: 1 }]);
   assert.deepEqual(o.ziyaretler.map(z => z.formKodu), ["A4", "A2", "A3", "A1"]);
+});
+
+test("aiZiyaret: okunan ham isimleri de saklar", () => {
+  const z = aiZiyaret({ personel: ["Mehmet Koya"] }, "2026-05-02", LISTE);
+  assert.deepEqual(z.personel, ["Mehmet Kaya"]);
+  assert.deepEqual(z.ham, ["Mehmet Koya"]);
+  assert.equal("ham" in aiZiyaret({ personel: [] }, "", LISTE), false);
+});
+
+test("elleZiyaret: kaynak elle, ham okuma korunur, sürüm artsa da yeniden okunmaz", () => {
+  const onceki = { personel: ["Mehmet Kaya"], ham: ["Mehmet Koya"], kaynak: "ai", surum: ZIYARET_SURUM };
+  const z = elleZiyaret(["mehmet kaya", "Kazım Balcı", "Mehmet Kaya"], "2026-03-04", onceki, "y@ornek.com", "2026-11-20T10:00:00Z");
+  assert.deepEqual(z, { personel: ["Mehmet Kaya", "Kazım Balcı"], tarih: "2026-03-04", kaynak: "elle", surum: ZIYARET_SURUM,
+    onaylayan: "y@ornek.com", onayTarihi: "2026-11-20T10:00:00Z", ham: ["Mehmet Koya"] });
+  assert.equal(elleZiyaret([], "geçersiz").tarih, "");
+  assert.deepEqual(elleZiyaret(["Ali Can"], "", { personel: ["Ali Cam"], kaynak: "ai", surum: 1 }).ham, ["Ali Cam"]);
+  assert.equal(ziyaretVar({ ziyaret: { personel: [], kaynak: "elle", surum: 0 } }), true);
+  assert.equal(ziyaretVar({ ziyaret: { personel: ["X Y"], kaynak: "ai", surum: 0 } }), false);
+});
+
+test("incelemeDurumu: gözden geçirme grupları", () => {
+  const ln = new Set(["mehmet kaya", "kazim balci"]);
+  assert.equal(incelemeDurumu({}, ln), "okunmadi");
+  assert.equal(incelemeDurumu({ formVerisi: { p: ["Ali"] } }, ln), "form");
+  assert.equal(incelemeDurumu({ ziyaret: { personel: [], kaynak: "ai" } }, ln), "bos");
+  assert.equal(incelemeDurumu({ ziyaret: { personel: ["Mehmet Kaya", "Hasan Yıldırm"], kaynak: "ai" } }, ln), "listeDisi");
+  assert.equal(incelemeDurumu({ ziyaret: { personel: ["Mehmet Kaya"], kaynak: "ai" } }, ln), "ai");
+  assert.equal(incelemeDurumu({ ziyaret: { personel: ["Hasan Yıldırm"], kaynak: "elle" } }, ln), "elle");
+  assert.equal(incelemeDurumu({ ziyaret: { personel: ["Hasan"], kaynak: "ai" } }, new Set()), "ai");
+});
+
+test("personelOzetle: kişi başına form, firma, son ziyaret, ekip ve dönem filtresi", () => {
+  const L = [
+    { firmaAdi: "A Firma", aramaFirma: "a firma", islemTipi: "Arıza", tarih: "2025-02-01T08:00:00Z", ziyaret: { personel: ["Ali Yılmaz", "Ayşe Kaya"], tarih: "2025-02-01" } },
+    { firmaAdi: "A Firma", aramaFirma: "a firma", islemTipi: "Bakım", tarih: "2026-03-05T08:00:00Z", ziyaret: { personel: ["ali yılmaz"], tarih: "2026-03-05" } },
+    { firmaAdi: "B Firma", aramaFirma: "b firma", islemTipi: "Arıza", tarih: "2026-04-01T08:00:00Z", ziyaret: { personel: ["Ali Yılmaz"], tarih: "" } },
+    { firmaAdi: "C Firma", aramaFirma: "c firma", tarih: "2026-05-01T08:00:00Z" }
+  ];
+  const o = personelOzetle(L);
+  assert.equal(o.formSayisi, 4); assert.equal(o.okunmamis, 1);
+  const ali = o.kisiler[0];
+  assert.equal(ali.ad, "Ali Yılmaz"); assert.equal(ali.sayi, 3); assert.equal(ali.firmaSayisi, 2); assert.equal(ali.son, "2026-04-01");
+  assert.deepEqual(ali.firmalar, [{ ad: "A Firma", sayi: 2 }, { ad: "B Firma", sayi: 1 }]);
+  assert.deepEqual(ali.tipler, [{ ad: "Arıza", sayi: 2 }, { ad: "Bakım", sayi: 1 }]);
+  assert.deepEqual(ali.ekip, [{ ad: "Ayşe Kaya", sayi: 1 }]);
+  assert.deepEqual(o.kisiler[1], { ad: "Ayşe Kaya", sayi: 1, firmaSayisi: 1, son: "2025-02-01", firmalar: [{ ad: "A Firma", sayi: 1 }], tipler: [{ ad: "Arıza", sayi: 1 }], ekip: [{ ad: "Ali Yılmaz", sayi: 1 }] });
+  const y = personelOzetle(L, { bas: "2026-01-01", bit: "2026-12-31" });
+  assert.equal(y.formSayisi, 3); assert.equal(y.kisiler.length, 1); assert.equal(y.kisiler[0].sayi, 2);
 });

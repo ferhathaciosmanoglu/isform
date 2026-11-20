@@ -64,6 +64,13 @@ export function ornekVeri() {
       const v = { firmaAdi: ad, aramaFirma: arama, sehir, islemTipi: tip, aciklama: not, ekleyen: sec(TEKNISYEN), fotoId,
         firmaKodu: kod, formNo: n, formKodu, tarih: gun(once), eklenmeTarihi: gun(once),
         konum: { lat: konum[0] + (rnd() - .5) * .05, lng: konum[1] + (rnd() - .5) * .05 } };
+      // Ziyaret (giden personel): çoğu AI ile okunmuş, birkaçı boş ya da listede olmayan isimle (gözden geçirme ekranı dolu görünsün)
+      const r = rnd(), ekip = [sec(PERSONEL)]; if (rnd() < .45) { const b = sec(PERSONEL); if (b !== ekip[0]) ekip.push(b); }
+      const tarihG = gun(once).slice(0, 10);
+      v.ziyaret = r < .1 ? { personel: [], tarih: tarihG, kaynak: "ai", surum: 2 }
+        : r < .18 ? { personel: [ekip[0], "Hasan Yıldırm"], ham: [ekip[0], "Hasan Yıldırm"], tarih: tarihG, kaynak: "ai", surum: 2 }
+        : r < .24 ? undefined : { personel: ekip, tarih: tarihG, kaynak: "ai", surum: 2 };
+      if (!v.ziyaret) delete v.ziyaret;
       if (n === adet && tip === "Bakım") { v.bakimAralik = sec([6, 12]); v.sonrakiBakim = gun(sec([-12, -3, 0, 2, 5, 9, 21, 40])); }
       formlar.set("f" + fi + "_" + n, v);
     }
