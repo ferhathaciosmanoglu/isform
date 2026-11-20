@@ -18,6 +18,7 @@
 
 /* Otomatik tamamlama */
 .autocomplete-items{position:absolute;border:1px solid var(--border);z-index:99;top:calc(100% + 6px);left:0;right:0;border-radius:var(--r-md);overflow-y:auto;box-shadow:var(--shadow);background:var(--surface);max-height:260px}
+.autocomplete-items:empty{display:none}
 .autocomplete-items div{padding:13px 16px;cursor:pointer;border-bottom:1px solid var(--border);font-size:.95rem;transition:.15s}
 .autocomplete-items div:last-child{border-bottom:none}
 .autocomplete-items div:hover{background:var(--primary-soft)}
