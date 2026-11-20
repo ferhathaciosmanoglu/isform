@@ -108,3 +108,15 @@ test("personelOzetle: kişi başına form, firma, son ziyaret, ekip ve dönem fi
   const y = personelOzetle(L, { bas: "2026-01-01", bit: "2026-12-31" });
   assert.equal(y.formSayisi, 3); assert.equal(y.kisiler.length, 1); assert.equal(y.kisiler[0].sayi, 2);
 });
+
+test("servis sorumlusu: listedeyse personele eklenir, değilse yalnızca sorumlu olarak saklanır", () => {
+  const z = aiZiyaret({ personel: ["Mehmet Koya"], sorumlu: "kazım balu" }, "2026-05-02", LISTE);
+  assert.deepEqual(z.personel, ["Mehmet Kaya", "Kazım Balcı"]);
+  assert.equal(z.sorumlu, "Kazım Balcı");
+  const y = aiZiyaret({ personel: [], sorumlu: "Ahmet Müşteri" }, "", LISTE);
+  assert.deepEqual(y.personel, []); assert.equal(y.sorumlu, "Ahmet Müşteri");
+  assert.deepEqual(aiZiyaret({ personel: ["Mehmet Kaya"], sorumlu: "Mehmet Kaya" }, "", LISTE).personel, ["Mehmet Kaya"]);
+  assert.equal("sorumlu" in aiZiyaret({ personel: ["Mehmet Kaya"], sorumlu: "" }, "", LISTE), false);
+  const f = formdanZiyaret({ tarih: "2026-10-01T09:00:00Z", formVerisi: { p: ["Ali Yılmaz", ""], sorumlu: "Veli Can" } });
+  assert.deepEqual(f.personel, ["Ali Yılmaz", "Veli Can"]);
+});

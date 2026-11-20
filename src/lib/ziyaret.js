@@ -4,7 +4,7 @@ import { levenshtein } from "./levenshtein.js";
 /* ===== ZİYARET: bir servis formundan "Enorpa'dan kim, ne zaman gitti" bilgisi =====
    formlar belgesinde `ziyaret: { personel: [ad], tarih: "YYYY-MM-DD", kaynak: "form" | "ai", surum }` olarak saklanır.
    Uygulamada oluşturulan formlarda bilgi formVerisi'nden (yapay zekâsız), taranmış kâğıt formlarda fotoğraftan okunur. */
-export const ZIYARET_SURUM = 2;   // 2: isimler personel listesiyle eşleştirilir, tarih formdan alınır (1 olanlar yeniden okunur)
+export const ZIYARET_SURUM = 3;   // 2: isimler personel listesiyle eşleştirilir, tarih formdan alınır; 3: imzadaki servis sorumlusu da okunur (eskiler yeniden okunur)
 
 export const adTemizle = t => String(t || "").replace(/\s+/g, " ").trim().toLocaleLowerCase("tr-TR")
   .split(" ").map(k => k.charAt(0).toLocaleUpperCase("tr-TR") + k.slice(1)).join(" ");
@@ -26,7 +26,7 @@ export function adlariTemizle(liste) {
 /* Uygulamada oluşturulmuş formdan (formVerisi.p) yapay zekâsız ziyaret bilgisi; yoksa null */
 export function formdanZiyaret(v) {
   const fv = v && v.formVerisi; if (!fv || !Array.isArray(fv.p)) return null;
-  const personel = adlariTemizle(fv.p);
+  const personel = adlariTemizle([...fv.p, fv.sorumlu]);   // servis sorumlusu personel listesinden seçilir; o da forma gitmiştir
   const tarih = gunMu(String(v.tarih || "").slice(0, 10)) ? String(v.tarih).slice(0, 10) : "";
   return { personel, tarih, kaynak: "form", surum: ZIYARET_SURUM };
 }
@@ -63,11 +63,16 @@ export const adlariEslestir = (adlar, liste) => adlariTemizle((adlar || []).map(
 /* Yapay zekâ çıktısını (serbest) kaydedilebilir biçime çevirir. formTarih: kayıttaki tarih (kâğıttan okunan tarih
    çoğu zaman yanlış okunduğu için kayıttaki tarih önceliklidir; yoksa okunan tarih kullanılır). liste: bilinen personel adları */
 export function aiZiyaret(cikti, formTarih = "", liste = []) {
-  const personel = adlariEslestir(cikti && cikti.personel, liste);
+  let personel = adlariEslestir(cikti && cikti.personel, liste);
+  /* İmzadaki servis sorumlusu bazen Personeller bölümüne yazılmaz. Personel listesindeki biriyle eşleşiyorsa forma gitmiş
+     sayılır; eşleşmiyorsa (müşteri yetkilisi olabilir) yalnızca `sorumlu` olarak saklanır, düzeltme ekranında öneri çıkar. */
+  const sorumluHam = adTemizle(cikti && cikti.sorumlu), sorumlu = sorumluHam.length >= 3 ? adiEslestir(sorumluHam, liste) : "";
+  const listede = sorumlu && (liste || []).some(a => metniNormalizeEt(adTemizle(a)) === metniNormalizeEt(sorumlu));
+  if (listede) personel = adlariTemizle([...personel, sorumlu]);
   let tarih = String((cikti && cikti.tarih) || "").trim();
   if (!gunMu(tarih)) tarih = "";
   const ham = adlariTemizle(cikti && cikti.personel);   // okunduğu gibi: eşleştirme kuralı değişirse AI'a gitmeden yeniden eşlenebilir
-  return { personel, ...(ham.length ? { ham } : {}), tarih: gunMu(formTarih) ? formTarih : tarih, kaynak: "ai", surum: ZIYARET_SURUM };
+  return { personel, ...(ham.length ? { ham } : {}), ...(sorumlu ? { sorumlu } : {}), tarih: gunMu(formTarih) ? formTarih : tarih, kaynak: "ai", surum: ZIYARET_SURUM };
 }
 export const okunamadi = () => ({ personel: [], tarih: "", kaynak: "ai", surum: ZIYARET_SURUM });
 

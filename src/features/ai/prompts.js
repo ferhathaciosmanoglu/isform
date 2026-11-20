@@ -2,7 +2,7 @@ import { aiSis, bugun } from "./ui.js";
 
 /* ===== AI: TÜM PROMPT VE ŞEMALAR TEK YERDE (metni değiştirirken surum'u artırın) ===== */
 export const AI_PROMPT = {
-  surum: 6,
+  surum: 7,
   sistem: aiSis,
   notDuzelt: n => "Aşağıdaki servis notunu yazım hatalarını düzelterek, kısa ve resmî bir servis raporu diline çevir. Bilgi ekleme, çıkarma. Sadece düzeltilmiş metni ver.\n\n" + n,
   notKontrol: (tip, n) => `İşlem tipi: ${tip || "belirtilmemiş"}. Bu servis notunda eksik kalmış önemli bilgileri (arıza nedeni, değişen parça, yapılan işlem, test/sonuç, müşteriye bildirilen durum) kısa sorular halinde listele. Eksik yoksa sadece "Eksik görünmüyor" yaz.\n\nNot: ${n}`,
@@ -11,7 +11,7 @@ export const AI_PROMPT = {
   raporYorum: veri => `Bugün: ${bugun()}. Bu servis kayıt istatistiklerini yöneticiye 5-6 maddede yorumla: öne çıkanlar, artış/azalış, dikkat edilmesi gerekenler. Sayıları aynen kullan.\n${JSON.stringify(veri)}`,
   kartvizit: 'Kartvizitten JSON çıkar: {"yetkili":"","firma":"","telefon":"","eposta":"","adres":""}. Okunamayanı boş bırak, uydurma.',
   formOku: "Bu bir servis iş formu fotoğrafı (el yazısı olabilir, ters/yan çekilmiş olabilir). Formda yazan yapılan işlem, arıza, değişen parça ve notları okuyup 'Açıklama' alanına yazılacak düzgün ve kısa bir Türkçe metin olarak yaz. Okunamayan veya görünmeyen bilgiyi uydurma. Hiç okunabilir açıklama yoksa sadece OKUNAMADI yaz. Sadece metni ver.",
-  ziyaretOku: (liste = []) => "Bu bir ENORPA servis iş formu fotoğrafı (el yazısı olabilir, ters/yan çekilmiş olabilir). Formun 'Personeller' bölümünde yazan ENORPA personelinin ad soyadlarını (en fazla 6 kişi) ve servisin yapıldığı tarihi oku. 'Servis Sorumlusu' müşteri firmanın yetkilisidir: onu personel listesine KOYMA. Okunamayan veya görünmeyen bilgiyi uydurma; hiç isim yoksa personel boş dizi olsun. Tarihi YYYY-MM-DD olarak ver (gün.ay.yıl yazılmışsa çevir); okunamıyorsa boş bırak. okundu: form okunabilir bir iş formuysa true, bulanık/alakasız ise false."
+  ziyaretOku: (liste = []) => "Bu bir ENORPA servis iş formu fotoğrafı (el yazısı olabilir, ters/yan çekilmiş olabilir). Formun 'Personeller' bölümünde yazan ENORPA personelinin ad soyadlarını (en fazla 6 kişi) ve servisin yapıldığı tarihi oku. Formun alt/imza kısmındaki 'Servis Sorumlusu' adını ayrıca 'sorumlu' alanına yaz (ENORPA'nın servis sorumlusudur; bazen Personeller bölümüne adını yazmaz). Müşteri/firma yetkilisinin adını ve imzasını hiçbir alana yazma. Okunamayan veya görünmeyen bilgiyi uydurma; hiç isim yoksa personel boş dizi olsun. Tarihi YYYY-MM-DD olarak ver (gün.ay.yıl yazılmışsa çevir); okunamıyorsa boş bırak. okundu: form okunabilir bir iş formuysa true, bulanık/alakasız ise false."
     + (liste.length ? " ENORPA personel listesi: " + liste.join(", ") + ". El yazısındaki isim bu listeden birine benziyorsa (soyadı bozuk okunmuş, sadece baş harf veya sadece ad yazılmış olsa bile) listedeki yazımı aynen kullan; listede olmayan biri yazıyorsa okuduğun gibi yaz." : ""),
   asPlan: (konusma, soru) => `Bugün: ${bugun()}. Bir servis kayıt uygulamasının asistanısın. Kullanıcının son mesajının servis kayıtlarına bakmayı gerektirip gerektirmediğine karar ver ve filtreleri çıkar. Önceki konuşma varsa ("peki Konya'da?", "onların hepsi") bağlamdan tamamla.
 Sadece JSON ver: {"kayit":true,"firma":"","sehir":"","islemTipi":"Bakım|Arıza|Müşteri Ziyareti|Kurulum|Keşif|Diğer veya boş","baslangic":"YYYY-MM-DD veya boş","bitis":"YYYY-MM-DD veya boş","anahtar":["notlarda geçecek kelimelerin KÖK hali, ek almamış"],"ekleyen":"e-posta parçası veya boş","personel":"ENORPA'dan giden kişinin adı veya boş","bakim":"gecikmis|yaklasan|boş","yaklasanGun":7,"gruplama":"firma|sehir|islemTipi|ay|ekleyen|personel|boş","sirala":"yeni|eski","anlamsal":"boş veya aranacak kısa metin"}
@@ -34,6 +34,6 @@ export const AI_SEMA = {
       sirala: { type: "STRING", enum: ["yeni", "eski"] }, anlamsal: { type: "STRING" }
     }
   },
-  ziyaret: { type: "OBJECT", required: ["okundu", "personel"], properties: { okundu: { type: "BOOLEAN" }, personel: { type: "ARRAY", items: { type: "STRING" } }, tarih: { type: "STRING", description: "YYYY-MM-DD" } } },
+  ziyaret: { type: "OBJECT", required: ["okundu", "personel"], properties: { okundu: { type: "BOOLEAN" }, personel: { type: "ARRAY", items: { type: "STRING" } }, sorumlu: { type: "STRING", description: "İmza kısmındaki Servis Sorumlusu adı soyadı" }, tarih: { type: "STRING", description: "YYYY-MM-DD" } } },
   kartvizit: { type: "OBJECT", properties: { yetkili: { type: "STRING" }, firma: { type: "STRING" }, telefon: { type: "STRING" }, eposta: { type: "STRING" }, adres: { type: "STRING" } } }
 };

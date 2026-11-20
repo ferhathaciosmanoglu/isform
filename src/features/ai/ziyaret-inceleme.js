@@ -106,6 +106,7 @@ function ciz() {
       <button type="button" class="btn btn-ikincil" id="ziBuyut">Büyüt</button>
     </div>
     ${hamFarkli ? `<p class="zi-not">AI formda şöyle okudu: <i>${htmlGuvenli(ham.join(", "))}</i></p>` : ""}
+    <p class="zi-not" id="ziSorumlu"></p>
     ${z.kaynak === "elle" ? `<p class="zi-not">${ikon("check", 13)} ${htmlGuvenli(z.onaylayan || "")} düzeltti${z.onayTarihi ? ", " + htmlGuvenli(TARIH(String(z.onayTarihi).slice(0, 10))) : ""}.</p>` : ""}
     <div class="alt-baslik" style="margin-top:10px">${ikon("users", 14)} Forma giden personel</div>
     <div class="zi-cipler" id="ziCipler"></div>
@@ -134,6 +135,12 @@ function ciz() {
 
 function ciplerCiz() {
   const ln = listeNorm();
+  /* İmzadaki servis sorumlusu personelde yoksa tek dokunuşla eklenebilsin */
+  const sor = adTemizle((liste[sira]?.v.ziyaret || {}).sorumlu), sk = m.querySelector("#ziSorumlu");
+  if (sor && !secili.some(a => metniNormalizeEt(a) === metniNormalizeEt(sor))) {
+    sk.innerHTML = `İmzadaki servis sorumlusu: <b>${htmlGuvenli(sor)}</b>${ln.has(metniNormalizeEt(sor)) ? "" : " (personel listesinde yok)"} <button type="button" class="zi-mini" id="ziSorEkle">${ikon("plus", 12)} Ekle</button>`;
+    sk.querySelector("#ziSorEkle").onclick = () => { secili.push(sor); m.dataset.kirli = "1"; ciplerCiz(); };
+  } else sk.innerHTML = "";
   m.querySelector("#ziCipler").innerHTML = secili.length
     ? secili.map((ad, i) => {
       const disi = !ln.has(metniNormalizeEt(ad));
