@@ -54,3 +54,4 @@
 .pr-detay .rapor-item{padding:7px 0;font-size:.85rem}
 .pr-cipler{margin-top:4px}
 .pr-cipler span{padding:4px 10px;border-radius:999px;background:var(--primary-soft);font-size:.8rem}
+.zi-mini{appearance:none;border:1.5px solid var(--primary);background:var(--primary-soft);color:var(--primary);border-radius:999px;padding:3px 10px;font:700 .75rem var(--font);cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-left:4px}
