@@ -16,7 +16,7 @@
 /* Üst bar */
 #mainApp{display:none;padding-bottom:110px}
 header{gap:8px;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:blur(16px) saturate(1.4);-webkit-backdrop-filter:blur(16px) saturate(1.4);
-  padding:calc(12px + env(safe-area-inset-top,0px)) 18px 12px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--border)}
+  padding:calc(12px + env(safe-area-inset-top,0px)) 18px 12px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:150;border-bottom:1px solid var(--border)}
 .header-brand{display:flex;align-items:center;gap:12px;min-width:0;flex:0 1 auto}
 .header-brand img{height:36px;max-width:100%;object-fit:contain;flex-shrink:1;min-width:0}
 .header-title{font-weight:700;font-size:1rem;letter-spacing:-.02em;border-left:1.5px solid var(--border);padding-left:12px}
