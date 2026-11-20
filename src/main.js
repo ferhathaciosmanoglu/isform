@@ -41,5 +41,6 @@ import "./features/reports/harita.js";
 import "./features/reports/rapor-ui.js";
 import "./features/ai/ek-ozellikler.js";
 import "./features/ai/ziyaret.js";
+import "./features/ai/ziyaret-inceleme.js";
 import "./app/ust-menu.js";
 import "./features/home/karsilama.js";

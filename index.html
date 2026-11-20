@@ -80,6 +80,7 @@
         <div class="ust-menu" id="ustMenu" hidden>
           <button class="optimize-btn mi" id="btnYukle" style="display:none" title="Uygulamayı ana ekrana yükle">Uygulamayı yükle</button>
           <button class="optimize-btn mi" id="btnZiyaretOku" style="display:none" title="Formlardan ENORPA personelinin ziyaretlerini AI ile okur">Ziyaretleri AI ile oku</button>
+          <button class="optimize-btn mi" id="btnZiyaretIncele" style="display:none" title="AI'ın okuduğu personeli fotoğrafla karşılaştırıp düzeltin">Ziyaret okumalarını düzelt</button>
           <button class="optimize-btn mi" id="btnPersonel" style="display:none" title="Personel listesini yönet">Personel listesi</button>
           <button class="optimize-btn mi" id="btnKullanicilar" style="display:none" onclick="kullaniciPaneliAc()" title="Kullanıcılar ve yetkiler">Kullanıcılar ve yetkiler</button>
           <button class="logout-btn mi" id="logoutBtn">Çıkış yap</button>
@@ -254,8 +255,13 @@
           <div class="rapor-listesi" id="listeSehir"></div>
           <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:6px">İşlem dağılımı</p>
           <div class="rapor-listesi" id="listeIslem"></div>
-          <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:6px">Personel dağılımı</p>
-          <div class="rapor-listesi" id="listePersonel"></div>
+          <div class="pr-ust">
+            <p style="font-size:.85rem;color:var(--text-muted);margin:0">Giden personel</p>
+            <select id="prDonem" class="harita-filtre" aria-label="Personel raporu dönemi"></select>
+          </div>
+          <div id="prOzet" class="pr-ozet"></div>
+          <div class="rapor-listesi pr-liste" id="listePersonel"></div>
+          <button id="btnPersonelCsv" class="btn btn-ikincil" style="margin-bottom:20px">Personel raporu (CSV)</button>
           <button id="btnRaporYenile" class="btn btn-ikincil"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4L21 8"/><path d="M21 3v5h-5"/></svg> Raporu yenile</button>
           <button id="btnYedek" class="btn btn-ikincil"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg> Tam yedek (JSON, yönetici)</button>
           <button id="btnExcelIndir" class="btn btn-success">Excel (CSV) indir</button>

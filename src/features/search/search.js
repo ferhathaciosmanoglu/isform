@@ -16,9 +16,9 @@ export let SIRA_YONU = 1;
 
 /* Arama ve rapor dışa aktarımı aynı sütunları kullanır */
 export function formSatirlari(formlar) {
-  const satirlar = [["Form Kodu", "Firma", "Şehir", "İşlem Tipi", "Ekleyen", "Tarih", "Sonraki Bakım", "Açıklama", "Enlem", "Boylam"]];
+  const satirlar = [["Form Kodu", "Firma", "Şehir", "İşlem Tipi", "Giden personel", "Ekleyen", "Tarih", "Sonraki Bakım", "Açıklama", "Enlem", "Boylam"]];
   const tr = iso => iso && !isNaN(new Date(iso)) ? new Date(iso).toLocaleDateString("tr-TR") : "";
-  formlar.forEach(v => satirlar.push([v.formKodu, v.firmaAdi, sehirGoster(v.sehir), v.islemTipi, v.ekleyen, tr(v.tarih), tr(v.sonrakiBakim), v.aciklama, v.konum?.lat ?? "", v.konum?.lng ?? ""]));
+  formlar.forEach(v => satirlar.push([v.formKodu, v.firmaAdi, sehirGoster(v.sehir), v.islemTipi, ziyaretPersonel(v).join(", "), v.ekleyen, tr(v.tarih), tr(v.sonrakiBakim), v.aciklama, v.konum?.lat ?? "", v.konum?.lng ?? ""]));
   return satirlar;
 }
 

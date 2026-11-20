@@ -120,7 +120,9 @@ liste = onbellektenOku(); if (!liste.length) liste = varsayilan(); sirala(); dol
 
 onAuthStateChanged(auth, u => {
   if (!u) return;
-  state.rolHazir.then(ok => { if (!ok) return; $("btnPersonel").style.display = yoneticiMi() ? "block" : "none"; yukle(); });
+  // Bu modül core/auth.js'ten önce yüklendiği için dinleyicisi de önce çalışır; rolHazir'ı auth.js yeni girişte yeniler.
+  // Bir tur beklenmezse yeni girişte eski (false) söz okunur ve personel listesi sayfa yenilenene kadar yüklenmez.
+  setTimeout(() => state.rolHazir.then(ok => { if (!ok) return; $("btnPersonel").style.display = yoneticiMi() ? "block" : "none"; yukle(); }), 0);
 });
 
 /* ---- Yönetim ekranı (yalnızca yönetici): ekle / düzenle / sil. Eski formlardaki isimler değişmez. ---- */

@@ -8,6 +8,9 @@
 - Ziyaret geçmişi: firma kartında ENORPA'dan kim, ne zaman, kaç kez gitti (AI ile form okuma).
 - Kayıt kartlarında formu ekleyen kişi yerine forma giden personel gösteriliyor (ekleyen kayıtta ve işlem geçmişinde kalıyor).
 - Form okurken isimler personel listesiyle eşleştiriliyor ("Mehmet Koya", "M. Kaya" → Mehmet Kaya); ziyaret tarihi kayıttaki tarihten alınıyor. Önceden okunanlar bir sonraki toplu okumada yeniden okunur.
+- Yönetici ⋯ → **Ziyaret okumalarını düzelt**: AI'ın okuduğu personel form fotoğrafıyla yan yana; personel boş, listede olmayan isim, okunmamış gruplarında tek tek düzeltilip kaydedilir. Elle düzeltilen kayıtları toplu AI okuması bir daha değiştirmez; AI'ın ham okuması da saklanır.
+- Rapor → **Giden personel**: kişi başına form ve firma sayısı, son ziyaret, en çok gittiği firmalar, işlem tipleri, birlikte gittiği kişiler; dönem seçimi ve CSV. Eski "Personel dağılımı" (formu ekleyen) kaldırıldı. Form CSV'sine "Giden personel" sütunu eklendi.
+- Düzeltme: yeni girişte personel listesi sayfa yenilenene kadar yüklenmiyordu.
 - Google "yoğun" (503) hatası verdiğinde toplu okuma durmuyor; bekleyip yeniden deniyor, gerekirse yedek modele geçiyor.
 
 ## 2.1.0
