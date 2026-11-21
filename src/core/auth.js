@@ -37,7 +37,7 @@ onAuthStateChanged(auth, user => {
       acilisBitir();
       if (!ok) { showToast("Hesabınız yetkilendirilmemiş. Lütfen yöneticiyle görüşün.", "error"); signOut(auth); return; }
       $("loginScreen").style.display = "none";
-      $("mainApp").style.display = "block";
+      window.servisSahaGoster();   // ana ekran ya da (#is-formlari ise) İş Formları
       if (!$("formTarihi").value) $("formTarihi").value = tarihiInputaCevir();
       showToast("Giriş başarılı, hoş geldin!", "success");
       $("btnKullanicilar").style.display = yoneticiMi() ? "block" : "none";
@@ -49,6 +49,7 @@ onAuthStateChanged(auth, user => {
     state.aktifKullaniciMail = ""; state.aktifRol = ""; state.rolHazir = Promise.resolve(false);
     $("loginScreen").style.display = "flex";
     $("mainApp").style.display = "none";
+    if (window.servisSahaGizle) window.servisSahaGizle();
   }
 });
 

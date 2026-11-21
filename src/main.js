@@ -23,6 +23,7 @@ import "./features/forms/ekle-modu.js";
 import "./features/forms/olustur.js";
 import "./features/forms/personel.js";
 import "./features/firms/benzer-firma.js";
+import "./app/servis-saha.js";
 import "./core/auth.js";
 import "./features/admin/kullanicilar.js";
 import "./app/pwa.js";

@@ -1,7 +1,7 @@
 {
-  "name": "ENORPA İş Formları",
-  "short_name": "ENORPA",
-  "description": "Servis formları, firma kartları ve bakım takibi",
+  "name": "ENORPA Servis - Saha",
+  "short_name": "Servis Saha",
+  "description": "Saha ekibinin uygulamaları: iş formları, proje takip, saha raporu, brülör kontrol, harcama ve diğerleri",
   "lang": "tr",
   "start_url": "./",
   "scope": "./",

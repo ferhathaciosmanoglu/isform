@@ -1,5 +1,11 @@
 # Değişiklik günlüğü
 
+## Servis - Saha
+- Uygulamanın adı **Servis - Saha** oldu (telefonda ikonun altında "Servis Saha").
+- Girişten sonra uygulama seçici ana ekran: İş Formları, Proje Takip, Saha Raporu, Brülör Kontrol, Brülör Takip,
+  Adam Saat, Harcama Formu, İş Takip, Ürün Kılavuzları; eski Brülör Kontrol V18 "Eski sürümler" altında.
+- İş Formları `#is-formlari` adresinde açılır; telefonun geri tuşu ya da üst bardaki düğme ana ekrana döner.
+
 ## Yayınlanmamış — Supabase'e geçiş
 - Arka uç Firebase'den Supabase'e taşındı (Auth, Postgres + RLS, Storage, Realtime); `src/veri/` Firestore benzeri API'yi koruyarak çağrı yerlerini değiştirmeden geçişi sağlar.
 - Form numarası artık `form_no_ayir()` Postgres fonksiyonuyla verilir; fotoğraflar Storage'da durur.

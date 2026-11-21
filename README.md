@@ -1,5 +1,14 @@
-# ENORPA İş Formları
+# ENORPA Servis - Saha
 
+Saha ekibinin uygulamalarını tek yerde toplayan PWA. Girişten sonra **Servis - Saha ana ekranı** açılır;
+uygulamalar kart olarak listelenir. **İş Formları** bu uygulamanın içindeki modüldür (adres: `#is-formlari`),
+diğerleri (Proje Takip, Saha Raporu, Brülör Kontrol, Brülör Takip, Adam Saat, Harcama Formu, İş Takip,
+Ürün Kılavuzları) kendi adreslerinde açılır.
+
+**Uygulama eklemek / adres değiştirmek:** `src/config/uygulamalar.js`. Liste Kazan Takip'in çarkındaki listeyle
+(`enorpa-kazan-takip` → `src/config/uygulamalar.js`) aynı adres ve renkleri kullanır; bir adres değişirse iki yerde de güncelleyin.
+
+## İş Formları
 Servis formu oluşturma, firma kartları, bakım takibi, raporlar/harita, ziyaret geçmişi ve Gemini destekli asistan içeren PWA.
 Ön yüz: düz JavaScript (ES modülleri) + Vite. Arka uç: **Supabase** (Auth, Postgres, Storage, Realtime, Edge Functions).
 Yayın: **GitHub Pages**.

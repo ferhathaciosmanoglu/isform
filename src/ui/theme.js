@@ -9,8 +9,9 @@ let isDark = kayitli() ? kayitli() === "dark" : sistem.matches;
 uygula(isDark);
 sistem.addEventListener("change", e => { if (!kayitli()) { isDark = e.matches; uygula(isDark); } });
 
-$("btnTheme").addEventListener("click", () => {
+/* Hem Servis - Saha ana ekranındaki hem İş Formları üst barındaki tema düğmesi */
+["btnTheme", "ssTema"].map($).filter(Boolean).forEach(b => b.addEventListener("click", () => {
   isDark = !isDark;
   uygula(isDark);
   try { localStorage.setItem("theme", isDark ? "dark" : "light"); } catch { /* özel sekme */ }
-});
+}));
