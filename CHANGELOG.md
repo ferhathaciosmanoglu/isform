@@ -1,7 +1,7 @@
 # Değişiklik günlüğü
 
-## Servis - Saha
-- Uygulamanın adı **Servis - Saha** oldu (telefonda ikonun altında "Servis Saha").
+## Servis Saha
+- Uygulamanın adı **Servis Saha** oldu (telefonda ikonun altında "Servis Saha").
 - Girişten sonra uygulama seçici ana ekran: İş Formları, Proje Takip, Saha Raporu, Brülör Kontrol, Brülör Takip,
   Adam Saat, Harcama Formu, İş Takip, Ürün Kılavuzları; eski Brülör Kontrol V18 "Eski sürümler" altında.
 - İş Formları `#is-formlari` adresinde açılır; telefonun geri tuşu ya da üst bardaki düğme ana ekrana döner.

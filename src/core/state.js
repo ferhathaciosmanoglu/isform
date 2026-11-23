@@ -4,7 +4,7 @@ export const state = {
   aktifRol: "",
   rolHazir: Promise.resolve(false),
   aktifKullaniciMail: "",
-  girisHazir: false,          // rol doğrulandı, Servis - Saha ekranları gösterilebilir
+  girisHazir: false,          // rol doğrulandı, Servis Saha ekranları gösterilebilir
   guncellenecekDocId: null,
   guncellenecekEskiAramaFirma: "",
   tumFormlarGlobal: [],

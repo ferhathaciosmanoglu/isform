@@ -5,7 +5,7 @@ import { auth } from "../veri/init.js";
 import { signOut } from "../veri/auth.js";
 import { state } from "../core/state.js";
 
-/* ===== SERVİS - SAHA ANA EKRANI =====
+/* ===== SERVİS SAHA ANA EKRANI =====
    Girişten sonra saha ekibinin uygulamaları kart olarak listelenir (src/config/uygulamalar.js).
    İç modüller (İş Formları) adres çubuğunda #<id> ile açılır: telefonun geri tuşu ana ekrana döner.
    Diğer uygulamalar kendi adreslerinde, yeni sekmede açılır. */
@@ -37,7 +37,7 @@ function goster() {
   const isFormlari = location.hash === "#is-formlari";
   $("hubEkrani").style.display = isFormlari ? "none" : "block";
   $("mainApp").style.display = isFormlari ? "block" : "none";
-  document.title = isFormlari ? "İş Formları · Servis - Saha" : "Servis - Saha";
+  document.title = isFormlari ? "İş Formları · Servis Saha" : "Servis Saha";
   if (!isFormlari) {
     $("ssSelam").textContent = selam() + (adCevir(state.aktifKullaniciMail) ? ", " + adCevir(state.aktifKullaniciMail) : "");
     $("ssTarih").textContent = new Date().toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long" });

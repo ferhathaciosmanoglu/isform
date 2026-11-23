@@ -37,7 +37,7 @@ async function senaryo(ad, girisli) {
   await sayfa.waitForTimeout(1200);
   let hub = null;
   if (girisli) {
-    /* Girişten sonra Servis - Saha ana ekranı açılır; İş Formları kartıyla modüle geçilir */
+    /* Girişten sonra Servis Saha ana ekranı açılır; İş Formları kartıyla modüle geçilir */
     hub = await sayfa.evaluate(() => ({ gorunur: getComputedStyle(document.getElementById("hubEkrani")).display, kart: document.querySelectorAll("#ssListe .ss-kart").length,
       isFormlari: !!document.querySelector('#ssListe [data-uyg="is-formlari"]') }));
     await sayfa.click('#ssListe [data-uyg="is-formlari"]'); await sayfa.waitForTimeout(300);
@@ -59,7 +59,7 @@ try {
   assert.equal(anon.ana, "none", "oturumsuz: ana uygulama gizli olmalı");
   const auth = await senaryo("oturumlu", true);
   assert.equal(auth.giris, "none", "oturumlu: giriş ekranı gizlenmeli");
-  assert.equal(auth.hub.gorunur, "block", "oturumlu: önce Servis - Saha ana ekranı görünmeli");
+  assert.equal(auth.hub.gorunur, "block", "oturumlu: önce Servis Saha ana ekranı görünmeli");
   assert.ok(auth.hub.kart >= 9 && auth.hub.isFormlari, "ana ekranda İş Formları dahil tüm uygulama kartları olmalı");
   assert.notEqual(auth.ana, "none", "oturumlu: ana uygulama görünmeli");
   // Gerileme: kesme işareti ve ters bölü olduğu gibi görünmeli (eskiden "Ali\\'nin" çıkıyordu)

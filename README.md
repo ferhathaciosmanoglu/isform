@@ -1,6 +1,6 @@
-# ENORPA Servis - Saha
+# ENORPA Servis Saha
 
-Saha ekibinin uygulamalarını tek yerde toplayan PWA. Girişten sonra **Servis - Saha ana ekranı** açılır;
+Saha ekibinin uygulamalarını tek yerde toplayan PWA. Girişten sonra **Servis Saha ana ekranı** açılır;
 uygulamalar kart olarak listelenir. **İş Formları** bu uygulamanın içindeki modüldür (adres: `#is-formlari`),
 diğerleri (Proje Takip, Saha Raporu, Brülör Kontrol, Brülör Takip, Adam Saat, Harcama Formu, İş Takip,
 Ürün Kılavuzları) kendi adreslerinde açılır.

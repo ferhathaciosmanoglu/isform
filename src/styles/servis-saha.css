@@ -1,4 +1,4 @@
-/* ===== SERVİS - SAHA ANA EKRANI (uygulama seçici) ===== */
+/* ===== SERVİS SAHA ANA EKRANI (uygulama seçici) ===== */
 #hubEkrani{min-height:100vh;padding-bottom:40px}
 .ss-ana{max-width:720px}
 .ss-karsilama{position:relative;overflow:hidden;color:#fff;border-radius:var(--r-lg);padding:22px 20px;margin-bottom:22px;

@@ -1,4 +1,4 @@
-/* Servis - Saha ana ekranındaki uygulamalar. Yeni uygulama eklemek için bu listeye bir satır ekleyin.
+/* Servis Saha ana ekranındaki uygulamalar. Yeni uygulama eklemek için bu listeye bir satır ekleyin.
    Adresler, renkler ve simgeler Kazan Takip'in çarkındaki listeyle aynıdır
    (ferhathaciosmanoglu/enorpa-kazan-takip → src/config/uygulamalar.js); bir adres değişirse iki yerde de güncelleyin.
    ic: true  → bu uygulamanın içindeki modül (adres çubuğunda #<id> ile açılır, geri tuşu ana ekrana döner)
