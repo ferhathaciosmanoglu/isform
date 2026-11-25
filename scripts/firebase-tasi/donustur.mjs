@@ -64,7 +64,7 @@ export function formSatiri(id, v, varOlanGorseller = new Set()) {
     konum: v.konum && typeof v.konum.lat === "number" && typeof v.konum.lng === "number" ? { lat: v.konum.lat, lng: v.konum.lng } : null,
     bakim_aralik: Number.isInteger(v.bakimAralik) && v.bakimAralik >= 1 && v.bakimAralik <= 120 ? v.bakimAralik : null,
     sonraki_bakim: gecerliTarih(v.sonrakiBakim) ? v.sonrakiBakim : null,
-    vektor: typeof v.vektor === "string" ? v.vektor.slice(0, 2000) : null, vektor_surum: Number.isInteger(v.vektorSurum) ? v.vektorSurum : null,
+    vektor: typeof v.vektor === "string" ? v.vektor.slice(0, 2000) : null, vektor_surum: typeof v.vektorSurum === "string" && v.vektorSurum.length <= 20 ? v.vektorSurum : null,
     olusturulan: v.olusturulan === true, form_verisi: formVerisi, ziyaret: v.ziyaret && typeof v.ziyaret === "object" ? v.ziyaret : null
   };
   return { satir, uyarilar, gomulu };
