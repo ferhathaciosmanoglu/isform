@@ -15,7 +15,8 @@ import { db } from "../../veri/init.js";
 import { sehirAdi } from "../reports/harita.js";
 import { aramaKutusu } from "../search/search.js";
 import { logYaz, yoneticiMi } from "../../core/session.js";
-import { ziyaretPersonel } from "../../lib/ziyaret.js";
+import { aiZiyaret, okunamadi, ziyaretPersonel } from "../../lib/ziyaret.js";
+import { bilinenPersonel, ziyaretFotodanOku } from "./ziyaret-oku.js";
 
 /* 1) Not alanları (İş formu tara + İş formu oluştur): yalnızca "Notu düzelt" ve "Notu kontrol et" */
 for (const id of ["aciklamaNotu", "ofAciklama"]) {
@@ -316,16 +317,17 @@ async function aiResim(f) {
   const onizle = document.createElement("div");
   onizle.style.cssText = "display:none;flex-direction:column;gap:8px;width:100%";
   const not = document.createElement("div"); not.style.cssText = "color:#fff;font-size:.78rem;line-height:1.4;opacity:.9";
+  const kisi = document.createElement("div"); kisi.style.cssText = "color:#fff;font-size:.85rem;line-height:1.4";
   const ta = document.createElement("textarea");
   ta.setAttribute("aria-label", "AI'ın okuduğu açıklama; kaydetmeden önce düzenleyebilirsiniz");
   ta.style.cssText = "width:100%;min-height:110px;max-height:30vh;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;font:inherit;font-size:.85rem;line-height:1.45;resize:vertical";
   const satir = document.createElement("div"); satir.style.cssText = "display:flex;gap:8px";
   const kaydet = document.createElement("button"); kaydet.type = "button"; kaydet.className = "btn btn-primary"; kaydet.style.cssText = "flex:1;margin:0"; kaydet.textContent = "💾 Kaydet";
   const vazgec = document.createElement("button"); vazgec.type = "button"; vazgec.className = "btn btn-ikincil"; vazgec.style.cssText = "margin:0"; vazgec.textContent = "Vazgeç";
-  satir.append(kaydet, vazgec); onizle.append(not, ta, satir); panel.appendChild(onizle);
+  satir.append(kaydet, vazgec); onizle.append(not, ta, kisi, satir); panel.appendChild(onizle);
   $("downloadLink").insertAdjacentElement("beforebegin", panel);
-  let docId = null;
-  const gizle = () => { onizle.style.display = "none"; ta.value = ""; };
+  let docId = null, okunanZiyaret = null;   // okunanZiyaret: "Formu oku" ile birlikte okunan personel (kaydedilmeyi bekler)
+  const gizle = () => { onizle.style.display = "none"; ta.value = ""; kisi.textContent = ""; okunanZiyaret = null; };
   vazgec.addEventListener("click", gizle);
   kaydet.addEventListener("click", async () => {
     const id = docId, t = ta.value.trim();
@@ -334,11 +336,13 @@ async function aiResim(f) {
     kaydet.disabled = true;
     try {
       const v = window.formCache?.[id] || (await getDoc(doc(db, "formlar", id))).data() || {};
-      if (v.aciklama && !confirm("Bu formda zaten açıklama var. AI okuması üzerine yazılsın mı?")) return;
+      if (v.aciklama && v.aciklama.trim() !== t && !confirm("Bu formda zaten açıklama var. AI okuması üzerine yazılsın mı?")) return;
       const vv = await vektorHazirla(v.islemTipi, t);
-      await updateDoc(doc(db, "formlar", id), { aciklama: t, ...(vv.vektor ? vv : { vektor: deleteField(), vektorSurum: deleteField() }) });
-      logYaz("Not AI ile yazıldı", v.formKodu || id, "Form fotoğrafından okundu");
-      if (window.formCache?.[id]) window.formCache[id].aciklama = t;
+      // Elle düzeltilmiş ya da uygulamada oluşturulmuş formun personeli AI okumasıyla ezilmez
+      const zy = okunanZiyaret && !(v.ziyaret && v.ziyaret.kaynak !== "ai") ? { ziyaret: okunanZiyaret } : {};
+      await updateDoc(doc(db, "formlar", id), { aciklama: t, ...zy, ...(vv.vektor ? vv : { vektor: deleteField(), vektorSurum: deleteField() }) });
+      logYaz("Not AI ile yazıldı", v.formKodu || id, "Form fotoğrafından okundu" + (zy.ziyaret ? "; personel: " + (zy.ziyaret.personel.join(", ") || "okunamadı") : ""));
+      if (window.formCache?.[id]) Object.assign(window.formCache[id], { aciklama: t }, zy);
       const kart = $("kart-" + id);
       if (kart) { let x = kart.querySelector(".aciklama-kutusu"); if (!x) { x = document.createElement("div"); x.className = "aciklama-kutusu"; kart.appendChild(x); } x.textContent = t; }
       if (window.aramaOnbellek) window.aramaOnbellek.clear();
@@ -350,9 +354,20 @@ async function aiResim(f) {
   const oku = async () => {
     const id = docId, src = $("modalImage").src;
     if (!id || !src.startsWith("data:")) throw new Error("Fotoğraf henüz yüklenmedi");
-    const t = (await gemini([{ inlineData: { mimeType: src.slice(5, src.indexOf(";")), data: src.split(",")[1] } }, { text: AI_PROMPT.formOku }], { sistem: AI_PROMPT.sistem })).trim();
+    const v = window.formCache?.[id] || {}, liste = bilinenPersonel();
+    // Açıklama ile birlikte giden personel de okunur (elle düzeltilmiş / uygulamada oluşturulmuş formlarda gerek yok)
+    const personelOku = v.ziyaret && v.ziyaret.kaynak !== "ai" ? Promise.resolve(null)
+      : ziyaretFotodanOku(src, { yeniden: 1, liste }).catch(e => { console.warn("Personel okunamadı:", e.message); return null; });
+    const [ham, c] = await Promise.all([
+      gemini([{ inlineData: { mimeType: src.slice(5, src.indexOf(";")), data: src.split(",")[1] } }, { text: AI_PROMPT.formOku }], { sistem: AI_PROMPT.sistem }),
+      personelOku
+    ]);
+    const t = ham.trim();
     if (/^OKUNAMADI/i.test(t)) { gizle(); showToast("Formdan açıklama okunamadı", "info"); return; }
     const yetkili = yoneticiMi();
+    okunanZiyaret = c ? (c.okundu === false ? okunamadi() : aiZiyaret(c, String(v.tarih || "").slice(0, 10), liste)) : null;
+    kisi.textContent = okunanZiyaret ? "👷 Personel: " + (okunanZiyaret.personel.join(", ") || "okunamadı")
+      : v.ziyaret ? "👷 Personel: " + (ziyaretPersonel(v).join(", ") || "yok") : "";
     ta.value = t; kaydet.style.display = yetkili ? "" : "none";
     not.textContent = yetkili ? "AI okuması henüz kaydedilmedi. Gerekirse düzeltin, sonra Kaydet'e basın." : "AI okuması (kaydetme yetkiniz yok).";
     onizle.style.display = "flex";
